@@ -1,39 +1,26 @@
+// Seletores
 const featuredBanner = document.getElementById('featured-banner');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
 
-const movieGenres = { 
-    "Ação": 28, 
-    "Comédia": 35, 
-    "Drama": 18, 
-    "Terror": 27, 
-    "Romance": 10749, 
-    "Aventura": 12, 
-    "Ficção científica": 878, 
-    "Animação": 16 
-};
-const tvGenres = { 
-    "Ação": 10759, 
-    "Comédia": 35, 
-    "Drama": 18, 
-    "Terror": 9648, 
-    "Romance": 10749, 
-    "Aventura": 10759, 
-    "Ficção científica": 10765, 
-    "Animação": 16 
-};
+// Gêneros TMDb
+const movieGenres = { "Ação": 28, "Comédia": 35, "Drama": 18, "Terror": 27, "Romance": 10749, "Aventura": 12, "Ficção científica": 878, "Animação": 16 };
+const tvGenres = { "Ação": 10759, "Comédia": 35, "Drama": 18, "Terror": 9648, "Romance": 10749, "Aventura": 10759, "Ficção científica": 10765, "Animação": 16 };
 
+// Normaliza strings
 function normalize(str) { 
     return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
 }
 
 const movieGenresNormalized = {};
-for (const key in movieGenres) { movieGenresNormalized[normalize(key)] = movieGenres[key]; }
-const tvGenresNormalized = {};
-for (const key in tvGenres) { tvGenresNormalized[normalize(key)] = tvGenres[key]; }
+for (const key in movieGenres) movieGenresNormalized[normalize(key)] = movieGenres[key];
 
+const tvGenresNormalized = {};
+for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
+
+// Renderiza estrelas
 function renderStars(vote) {
     const full = Math.floor(vote / 2);
     const half = vote % 2 >= 1 ? 1 : 0;
@@ -41,6 +28,7 @@ function renderStars(vote) {
     return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
+// Cria card de filme/série
 function createCard(item, type) {
     const card = document.createElement('div');
     card.classList.add('card');
@@ -80,15 +68,19 @@ function createCard(item, type) {
     return card;
 }
 
-// ✅ Busca filmes usando sua rota protegida da TMDB (sem expor a chave)
+// Busca filmes/séries por gênero
 async function fetchByGenre(type, genreId) {
-    const url = `/api/tmdb?type=${type}&genreId=${genreId}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.results || [];
+    try {
+        const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}`);
+        const data = await res.json();
+        return data.results || [];
+    } catch (err) {
+        console.error("Erro ao buscar na TMDb:", err);
+        return [];
+    }
 }
 
-// ✅ Função para chamar a OpenAI
+// Chamada segura à OpenAI
 async function enviarParaOpenAI(prompt) {
     try {
         const res = await fetch('/api/openai', {
@@ -97,17 +89,19 @@ async function enviarParaOpenAI(prompt) {
             body: JSON.stringify({ prompt })
         });
         const data = await res.json();
-        return data.resposta;
+        if (data.error) return data.error;
+        return data.result || "";
     } catch (err) {
         console.error("Erro ao conectar com a IA:", err);
-        alert("Erro ao conectar com a IA. Tente novamente.");
-        return "";
+        return "Não foi possível conectar com a IA no momento.";
     }
 }
 
-// ✅ Função de busca adaptada com IA
+// Busca principal adaptada para IA
 async function search() {
     const inputOriginal = searchInput.value.trim();
+    if (!inputOriginal) return alert("Digite um gênero ou termo!");
+
     const input = normalize(inputOriginal);
     let type, genreId;
 
@@ -119,6 +113,7 @@ async function search() {
         const prompt = `Dado o termo "${inputOriginal}", sugira um gênero de filme ou série existente em português (ex: Ação, Comédia, Drama, Terror, Romance, Aventura, Ficção científica, Animação)`;
         const sugestao = await enviarParaOpenAI(prompt);
         const novoInput = normalize(sugestao.split(/,|\n/)[0].trim());
+
         if (movieGenresNormalized[novoInput]) {
             type = 'movie'; genreId = movieGenresNormalized[novoInput];
         } else if (tvGenresNormalized[novoInput]) {
@@ -134,7 +129,7 @@ async function search() {
     results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
 }
 
-// ✅ Botão "Surpreenda-me"
+// Botão "Surpreenda-me"
 async function surprise() {
     const genres = Object.keys(movieGenres);
     const randomGenre = genres[Math.floor(Math.random() * genres.length)];
@@ -142,14 +137,15 @@ async function surprise() {
     await search();
 }
 
+// Eventos
 searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
 
-// ✅ Banner de destaque (usando também a rota segura da TMDB)
+// Banner de destaque
 async function loadFeatured() {
     try {
-        const res = await fetch(`/api/tmdb?type=movie&genreId=28`); // Exemplo: ação
+        const res = await fetch(`/api/tmdb?type=movie&genreId=28`); // Ex: ação
         const data = await res.json();
         const movies = data.results?.slice(0, 5) || [];
 
