@@ -1,1 +1,1 @@
-const TMDB_API_KEY = "e82f8aae5d37462b1f0dadc4acb9db83";
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
