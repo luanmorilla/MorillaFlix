@@ -37,7 +37,7 @@ header {
 /* ======== BANNER ======== */
 .hero {
   position: relative;
-  height: 250px;
+  height: 280px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -51,7 +51,7 @@ header {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.2) 90%);
 }
 
 .hero-content {
@@ -59,19 +59,31 @@ header {
   text-align: center;
   padding: 15px;
   z-index: 2;
+  max-width: 95%;
 }
 
 .hero-content h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   text-transform: uppercase;
+  line-height: 1.2;
   margin-bottom: 8px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-content p {
   font-size: 0.9rem;
   color: #ddd;
   margin-bottom: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Limita a 3 linhas */
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
 }
 
 .hero-content a {
@@ -79,9 +91,14 @@ header {
   background: #e50914;
   color: #fff;
   padding: 10px 20px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border-radius: 4px;
   font-weight: 600;
+  transition: background 0.3s;
+}
+
+.hero-content a:hover {
+  background: #b0060e;
 }
 
 /* ======== PESQUISA ======== */
