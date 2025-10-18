@@ -40,13 +40,15 @@
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-    padding: 40px;
     margin-top: 80px;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    padding: 0;
   }
   
-  /* Degradê escuro estilo Netflix */
+  /* Degradê escuro fixo embaixo */
   .hero::before {
     content: "";
     position: absolute;
@@ -55,9 +57,12 @@
     z-index: 1;
   }
   
-  /* Conteúdo do banner */
+  /* Conteúdo fixo no rodapé do banner */
   .hero-content {
-    position: relative;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
     z-index: 2;
     max-width: 700px;
   }
@@ -204,17 +209,20 @@
   @media (max-width: 768px) {
     .hero {
       height: 350px;
-      padding: 20px;
-      align-items: flex-end;
+    }
+  
+    .hero-content {
+      bottom: 15px;
+      left: 15px;
+      right: 15px;
     }
   
     .hero-content h2 {
-      font-size: 2rem;
+      font-size: 1.8rem;
     }
   
     .hero-content p {
-      font-size: 1rem;
-      max-width: 100%;
+      font-size: 0.95rem;
     }
   
     .search-section input {
