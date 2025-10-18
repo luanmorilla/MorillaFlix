@@ -1,18 +1,55 @@
 // Seletores
-const featuredBanner = document.querySelector('.hero'); // corrigido
+const featuredBanner = document.querySelector('.hero');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
 
-// Gêneros TMDb
-const movieGenres = { "Ação": 28, "Comédia": 35, "Drama": 18, "Terror": 27, "Romance": 10749, "Aventura": 12, "Ficção científica": 878, "Animação": 16 };
-const tvGenres = { "Ação": 10759, "Comédia": 35, "Drama": 18, "Terror": 9648, "Romance": 10749, "Aventura": 10759, "Ficção científica": 10765, "Animação": 16 };
-const generosValidos = ["ação", "comédia", "drama", "terror", "romance", "aventura", "ficção científica", "animação"];
+// 🎥 Gêneros TMDb — Filmes e Séries
+const movieGenres = {
+  "Ação": 28,
+  "Aventura": 12,
+  "Animação": 16,
+  "Comédia": 35,
+  "Crime": 80,
+  "Documentário": 99,
+  "Drama": 18,
+  "Família": 10751,
+  "Fantasia": 14,
+  "História": 36,
+  "Terror": 27,
+  "Música": 10402,
+  "Mistério": 9648,
+  "Romance": 10749,
+  "Ficção científica": 878,
+  "Filme de TV": 10770,
+  "Thriller": 53,
+  "Guerra": 10752,
+  "Faroeste": 37
+};
 
-// Normaliza strings
-function normalize(str) { 
-  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+const tvGenres = {
+  "Ação": 10759,
+  "Aventura": 10759,
+  "Animação": 16,
+  "Comédia": 35,
+  "Crime": 80,
+  "Documentário": 99,
+  "Drama": 18,
+  "Família": 10751,
+  "Infantil": 10762,
+  "Mistério": 9648,
+  "Notícias": 10763,
+  "Reality": 10764,
+  "Ficção científica": 10765,
+  "Talk Show": 10767,
+  "Guerra e Política": 10768,
+  "Faroeste": 37
+};
+
+// ✅ Normaliza strings
+function normalize(str) {
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 const movieGenresNormalized = {};
@@ -20,7 +57,9 @@ for (const key in movieGenres) movieGenresNormalized[normalize(key)] = movieGenr
 const tvGenresNormalized = {};
 for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
-// Renderiza estrelas
+const generosValidos = Object.keys(movieGenresNormalized).concat(Object.keys(tvGenresNormalized));
+
+// ⭐ Renderiza estrelas
 function renderStars(vote) {
   const full = Math.floor(vote / 2);
   const half = vote % 2 >= 1 ? 1 : 0;
@@ -28,7 +67,7 @@ function renderStars(vote) {
   return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// Cria card com hover
+// 🃏 Cria card com hover
 function createCard(item, type) {
   const card = document.createElement('div');
   card.classList.add('card');
@@ -68,7 +107,7 @@ function createCard(item, type) {
   return card;
 }
 
-// Busca TMDb
+// 📡 Busca TMDb
 async function fetchByGenre(type, genreId) {
   try {
     if (!type || !genreId) {
@@ -88,7 +127,7 @@ async function fetchByGenre(type, genreId) {
   }
 }
 
-// Chamada OpenAI
+// 🤖 Chamada OpenAI
 async function enviarParaOpenAI(prompt) {
   try {
     const res = await fetch('/api/openai', {
@@ -105,7 +144,7 @@ async function enviarParaOpenAI(prompt) {
   }
 }
 
-// Busca principal
+// 🔍 Busca principal
 async function search() {
   const inputOriginal = searchInput.value.trim();
   if (!inputOriginal) return alert("Digite um gênero ou termo!");
@@ -121,7 +160,7 @@ async function search() {
     const prompt = `
       Você é um assistente de recomendação de filmes. 
       Dado o termo "${inputOriginal}", responda com APENAS UM dos gêneros de filme ou série abaixo:
-      Ação, Comédia, Drama, Terror, Romance, Aventura, Ficção científica, Animação.
+      ${Object.keys(movieGenres).join(", ")}, ${Object.keys(tvGenres).join(", ")}.
     `;
     let sugestao = await enviarParaOpenAI(prompt);
     let sugestaoNormalized = normalize(sugestao);
@@ -145,7 +184,7 @@ async function search() {
   resultsContainer.scrollLeft = 0;
 }
 
-// Surpreenda-me
+// 🎲 Surpreenda-me
 async function surprise() {
   const genres = Object.keys(movieGenres);
   const randomGenre = genres[Math.floor(Math.random() * genres.length)];
@@ -153,12 +192,12 @@ async function surprise() {
   await search();
 }
 
-// Eventos
+// 🧭 Eventos
 searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
 
-// Banner dinâmico com fade
+// 🖼️ Banner dinâmico
 async function loadFeatured() {
   try {
     const res = await fetch(`/api/tmdb?type=movie&genreId=28`);
@@ -178,7 +217,6 @@ async function loadFeatured() {
     }
 
     atualizarBanner(current);
-
     setInterval(() => {
       current = (current + 1) % movies.length;
       atualizarBanner(current);
