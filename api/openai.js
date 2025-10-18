@@ -1,13 +1,16 @@
 import OpenAI from "openai";
 
 export default async function handler(req, res) {
+  // 🧪 Verifica se a variável está carregada
+  console.log("🔑 CHAVE CARREGADA NO SERVIDOR:", process.env.OPENAI_API_KEY);
+
   // 🚫 Método inválido
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
-    // 🧠 Verifica se a variável está presente
+    // 🧠 Verifica se a variável existe
     if (!process.env.OPENAI_API_KEY) {
       console.error("❌ ERRO: OPENAI_API_KEY não está definida no ambiente da Vercel.");
       return res.status(500).json({ error: "Chave da OpenAI ausente no servidor." });
