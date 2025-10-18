@@ -1,5 +1,5 @@
 // Seletores
-const featuredBanner = document.getElementById('featured-banner');
+const featuredBanner = document.querySelector('.hero'); // ✅ atualizado
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
@@ -28,7 +28,7 @@ function renderStars(vote) {
     return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// Cria card com hover 3D
+// Cria card
 function createCard(item, type) {
     const card = document.createElement('div');
     card.classList.add('card');
@@ -80,7 +80,7 @@ async function fetchByGenre(type, genreId) {
     }
 }
 
-// Chamada OpenAI com prompt melhorado
+// Chamada OpenAI
 async function enviarParaOpenAI(prompt) {
     try {
         const res = await fetch('/api/openai', {
@@ -97,7 +97,7 @@ async function enviarParaOpenAI(prompt) {
     }
 }
 
-// Busca principal com IA melhorada
+// Busca principal
 async function search() {
     const inputOriginal = searchInput.value.trim();
     if (!inputOriginal) return alert("Digite um gênero ou termo!");
@@ -112,14 +112,12 @@ async function search() {
     } else {
         const prompt = `
         Você é um assistente de recomendação de filmes. 
-        Dado o termo "${inputOriginal}", responda com APENAS UM dos gêneros de filme ou série abaixo, em português, SEM EXPLICAÇÕES:
+        Dado o termo "${inputOriginal}", responda com APENAS UM dos gêneros abaixo:
         Ação, Comédia, Drama, Terror, Romance, Aventura, Ficção científica, Animação.
-        Se o termo não corresponder a nenhum gênero, escolha o gênero mais próximo e responda somente o nome do gênero.
         `;
         let sugestao = await enviarParaOpenAI(prompt);
         let sugestaoNormalized = normalize(sugestao);
 
-        // ✅ fallback automático
         if (!generosValidos.includes(sugestaoNormalized)) {
             console.warn("⚠️ Gênero não reconhecido, aplicando fallback: Ação");
             sugestaoNormalized = "ação";
@@ -135,7 +133,6 @@ async function search() {
     resultsContainer.innerHTML = '';
     const results = await fetchByGenre(type, genreId);
     results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
-
     resultsContainer.scrollLeft = 0;
 }
 
@@ -152,36 +149,46 @@ searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
 
-// Banner de destaque
+// Banner de destaque com overlay e transição suave
 async function loadFeatured() {
     try {
         const res = await fetch(`/api/tmdb?type=movie&genreId=28`);
         const data = await res.json();
         const movies = data.results?.slice(0, 5) || [];
-
-        movies.forEach((movie, index) => {
-            const slide = document.createElement('div');
-            slide.classList.add('featured-slide');
-            if (index === 0) slide.classList.add('active');
-            slide.innerHTML = `
-                <img src="https://image.tmdb.org/t/p/original${movie.backdrop_path}" alt="${movie.title}">
-                <div class="featured-info">
-                    <h2>${movie.title}</h2>
-                    <p>${movie.overview || "Sem sinopse disponível"}</p>
-                    <p>Nota: ${renderStars(movie.vote_average)}</p>
-                </div>
-            `;
-            featuredBanner.appendChild(slide);
-        });
-
         let current = 0;
+
+        // Criar overlay escuro
+        const overlay = document.createElement('div');
+        overlay.style.position = "absolute";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.background = "linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8))";
+        overlay.style.zIndex = "1";
+        featuredBanner.style.position = "relative";
+        featuredBanner.appendChild(overlay);
+
+        function atualizarBanner(index) {
+            const movie = movies[index];
+            if (!movie) return;
+
+            featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+            featuredBanner.style.backgroundSize = "cover";
+            featuredBanner.style.backgroundPosition = "center";
+            featuredBanner.style.transition = "background-image 1s ease-in-out";
+
+            document.getElementById("hero-title").textContent = movie.title;
+            document.getElementById("hero-description").textContent = movie.overview || "Sem sinopse disponível";
+        }
+
+        atualizarBanner(current);
+
         setInterval(() => {
-            const slides = document.querySelectorAll('.featured-slide');
-            if (slides.length === 0) return;
-            slides[current].classList.remove('active');
-            current = (current + 1) % slides.length;
-            slides[current].classList.add('active');
+            current = (current + 1) % movies.length;
+            atualizarBanner(current);
         }, 5000);
+
     } catch (error) {
         console.error("❌ Erro ao carregar banner:", error);
     }
