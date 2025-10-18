@@ -1,4 +1,4 @@
-// Seletores
+// 📌 Seletores
 const featuredBanner = document.querySelector('.hero');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
@@ -7,53 +7,29 @@ const resultsContainer = document.getElementById('results');
 
 // 🎥 Gêneros TMDb — Filmes e Séries
 const movieGenres = {
-  "Ação": 28,
-  "Aventura": 12,
-  "Animação": 16,
-  "Comédia": 35,
-  "Crime": 80,
-  "Documentário": 99,
-  "Drama": 18,
-  "Família": 10751,
-  "Fantasia": 14,
-  "História": 36,
-  "Terror": 27,
-  "Música": 10402,
-  "Mistério": 9648,
-  "Romance": 10749,
-  "Ficção científica": 878,
-  "Filme de TV": 10770,
-  "Thriller": 53,
-  "Guerra": 10752,
-  "Faroeste": 37
+  "Ação": 28, "Aventura": 12, "Animação": 16, "Comédia": 35, "Crime": 80,
+  "Documentário": 99, "Drama": 18, "Família": 10751, "Fantasia": 14,
+  "História": 36, "Terror": 27, "Música": 10402, "Mistério": 9648,
+  "Romance": 10749, "Ficção científica": 878, "Filme de TV": 10770,
+  "Thriller": 53, "Guerra": 10752, "Faroeste": 37
 };
 
 const tvGenres = {
-  "Ação": 10759,
-  "Aventura": 10759,
-  "Animação": 16,
-  "Comédia": 35,
-  "Crime": 80,
-  "Documentário": 99,
-  "Drama": 18,
-  "Família": 10751,
-  "Infantil": 10762,
-  "Mistério": 9648,
-  "Notícias": 10763,
-  "Reality": 10764,
-  "Ficção científica": 10765,
-  "Talk Show": 10767,
-  "Guerra e Política": 10768,
+  "Ação": 10759, "Aventura": 10759, "Animação": 16, "Comédia": 35, "Crime": 80,
+  "Documentário": 99, "Drama": 18, "Família": 10751, "Infantil": 10762,
+  "Mistério": 9648, "Notícias": 10763, "Reality": 10764,
+  "Ficção científica": 10765, "Talk Show": 10767, "Guerra e Política": 10768,
   "Faroeste": 37
 };
 
-// ✅ Normaliza strings
+// 🧠 Normaliza strings
 function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 const movieGenresNormalized = {};
 for (const key in movieGenres) movieGenresNormalized[normalize(key)] = movieGenres[key];
+
 const tvGenresNormalized = {};
 for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
@@ -197,10 +173,13 @@ searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
 
-// 🖼️ Banner dinâmico
+// 🖼️ Banner dinâmico com gênero aleatório
 async function loadFeatured() {
   try {
-    const res = await fetch(`/api/tmdb?type=movie&genreId=28`);
+    const genreIds = Object.values(movieGenres);
+    const randomGenreId = genreIds[Math.floor(Math.random() * genreIds.length)];
+
+    const res = await fetch(`/api/tmdb?type=movie&genreId=${randomGenreId}`);
     const data = await res.json();
     const movies = data.results?.slice(0, 5) || [];
     let current = 0;
