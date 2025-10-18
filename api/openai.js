@@ -1,10 +1,10 @@
-import OpenAI from "openai";
+const OpenAI = require("openai");
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -20,15 +20,14 @@ export default async function handler(req, res) {
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 100,
-      temperature: 0.7
+      temperature: 0.7,
     });
 
-    res.status(200).json({
-      result: completion.choices[0].message.content
+    return res.status(200).json({
+      result: completion.choices[0].message.content,
     });
-
   } catch (error) {
     console.error("❌ Erro na API OpenAI:", error);
-    res.status(500).json({ error: "Falha ao processar IA" });
+    return res.status(500).json({ error: "Falha ao processar IA" });
   }
-}
+};
