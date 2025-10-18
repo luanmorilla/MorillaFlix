@@ -1,0 +1,203 @@
+/* ======== GERAL ======== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  body {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  /* ======== HEADER ======== */
+  header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 30px;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .logo {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ff0000, #ff4c4c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* ======== BANNER (HERO) ======== */
+  .hero {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), #000),
+                url('https://images.unsplash.com/photo-1594840595960-6f5c08f8957a?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat;
+    height: 450px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 40px;
+    margin-top: 80px;
+  }
+  
+  .hero-content h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  
+  .hero-content p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    line-height: 1.5;
+    color: #ddd;
+  }
+  
+  /* ======== PESQUISA ======== */
+  .search-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    gap: 15px;
+  }
+  
+  .search-section input {
+    padding: 12px 15px;
+    width: 300px;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  .buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn-primary {
+    background-color: #e50914;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+  }
+  
+  .btn-primary:hover {
+    background-color: #b0060e;
+  }
+  
+  .btn-secondary {
+    background-color: #222;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #444;
+  }
+  
+  /* ======== RESULTADOS ======== */
+  .results-section {
+    padding: 20px;
+  }
+  
+  .results-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .results-carousel {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+  }
+  
+  .results-carousel::-webkit-scrollbar {
+    height: 6px;
+  }
+  .results-carousel::-webkit-scrollbar-thumb {
+    background: #e50914;
+    border-radius: 3px;
+  }
+  
+  .card {
+    min-width: 160px;
+    background-color: #111;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  
+  .card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(229, 9, 20, 0.6);
+  }
+  
+  .card img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+  }
+  
+  .card-info {
+    padding: 10px;
+  }
+  
+  .card-info h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+  }
+  
+  .card-info p {
+    font-size: 0.8rem;
+    color: #aaa;
+  }
+  
+  /* ======== FOOTER ======== */
+  footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #000;
+    border-top: 1px solid #222;
+    margin-top: 20px;
+    color: #777;
+  }
+  
+  /* ======== RESPONSIVIDADE ======== */
+  @media (max-width: 768px) {
+    .hero {
+      height: 350px;
+      padding: 20px;
+    }
+  
+    .hero-content h2 {
+      font-size: 2rem;
+    }
+  
+    .search-section input {
+      width: 90%;
+    }
+  
+    .results-carousel {
+      flex-direction: row;
+    }
+  }
+  
