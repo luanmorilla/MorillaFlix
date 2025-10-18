@@ -233,4 +233,27 @@
       flex-direction: row;
     }
   }
+  /* ======== BOTÃO ASSISTIR AGORA ======== */
+.watch-now {
+    display: inline-block;
+    margin-top: 15px;
+    background-color: #e50914;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+  }
+  
+  .watch-now:hover {
+    background-color: #b0060e;
+  }
+  
+  @media (max-width: 768px) {
+    .watch-now {
+      font-size: 0.9rem;
+      padding: 10px 15px;
+    }
+  }
   

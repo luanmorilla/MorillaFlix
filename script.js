@@ -4,6 +4,7 @@ const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
+const AFFILIATE_LINK = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
 
 // 🎥 Gêneros TMDb — Filmes e Séries
 const movieGenres = {
@@ -43,7 +44,7 @@ function renderStars(vote) {
   return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// 🃏 Cria card com hover
+// 🃏 Cria card com botão de afiliado
 function createCard(item, type) {
   const card = document.createElement('div');
   card.classList.add('card');
@@ -63,6 +64,7 @@ function createCard(item, type) {
         <p class="overview">${overview}</p>
         <button class="toggle-overview">Leia mais</button>
         <p class="rating">Nota: <span class="stars">${renderStars(rating)}</span></p>
+        <a href="${AFFILIATE_LINK}" target="_blank" class="watch-now">🎬 Assistir agora</a>
     </div>
   `;
 
@@ -173,7 +175,7 @@ searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
 
-// 🖼️ Banner dinâmico com gênero aleatório
+// 🖼️ Banner dinâmico com gênero aleatório + botão afiliado
 async function loadFeatured() {
   try {
     const genreIds = Object.values(movieGenres);
@@ -193,6 +195,7 @@ async function loadFeatured() {
 
       document.getElementById("hero-title").textContent = movie.title;
       document.getElementById("hero-description").textContent = movie.overview || "Sem sinopse disponível";
+      document.getElementById("hero-watch-btn").href = AFFILIATE_LINK;
     }
 
     atualizarBanner(current);
