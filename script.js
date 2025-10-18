@@ -1,31 +1,18 @@
-// =======================
-// 🔗 Configuração de API fixa (sempre usa Vercel)
-// =======================
-const API_BASE = 'https://morilla-flix.vercel.app';
-
-// =======================
-// SELETORES
-// =======================
-const heroSection = document.querySelector('.hero');
-const heroTitle = document.getElementById('hero-title');
-const heroDescription = document.getElementById('hero-description');
+// Seletores
 const featuredBanner = document.getElementById('featured-banner');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
 
-// =======================
-// GÊNEROS TMDB
-// =======================
+// Gêneros TMDb
 const movieGenres = { "Ação": 28, "Comédia": 35, "Drama": 18, "Terror": 27, "Romance": 10749, "Aventura": 12, "Ficção científica": 878, "Animação": 16 };
 const tvGenres = { "Ação": 10759, "Comédia": 35, "Drama": 18, "Terror": 9648, "Romance": 10749, "Aventura": 10759, "Ficção científica": 10765, "Animação": 16 };
+const generosValidos = ["ação","comédia","drama","terror","romance","aventura","ficção científica","animação"];
 
-// =======================
-// FUNÇÕES AUXILIARES
-// =======================
-function normalize(str) {
-  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// Normaliza strings
+function normalize(str) { 
+    return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
 }
 
 const movieGenresNormalized = {};
@@ -33,171 +20,171 @@ for (const key in movieGenres) movieGenresNormalized[normalize(key)] = movieGenr
 const tvGenresNormalized = {};
 for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
+// Renderiza estrelas
 function renderStars(vote) {
-  const full = Math.floor(vote / 2);
-  const half = vote % 2 >= 1 ? 1 : 0;
-  const empty = 5 - full - half;
-  return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
+    const full = Math.floor(vote / 2);
+    const half = vote % 2 >= 1 ? 1 : 0;
+    const empty = 5 - full - half;
+    return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// =======================
-// CRIAR CARD
-// =======================
+// Cria card com hover 3D
 function createCard(item, type) {
-  const card = document.createElement('div');
-  card.classList.add('card');
+    const card = document.createElement('div');
+    card.classList.add('card');
 
-  const title = item.title || item.name || "Sem título";
-  const rating = item.vote_average || 0;
-  const poster = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : null;
+    const title = item.title || item.name || "Sem título";
+    let overview = item.overview || "Sem sinopse disponível";
+    if (window.innerWidth <= 768 && overview.length > 120) overview = overview.slice(0, 120) + "...";
 
-  card.innerHTML = `
-    <div class="poster">${poster ? `<img src="${poster}" alt="${title}">` : `<div class="no-image">Sem imagem</div>`}</div>
-    <div class="card-info">
-        <h3>${title}</h3>
-        <p class="type">${type === 'movie' ? 'Filme' : 'Série'}</p>
-        <p class="rating"><span class="stars">${renderStars(rating)}</span></p>
-    </div>
-  `;
-  return card;
-}
+    const rating = item.vote_average || 0;
+    const poster = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : null;
 
-// =======================
-// TMDB API
-// =======================
-async function fetchByGenre(type, genreId) {
-  try {
-    const res = await fetch(`${API_BASE}/api/tmdb?type=${type}&genreId=${genreId}`);
-    const data = await res.json();
-    return data.results || [];
-  } catch (err) {
-    console.error("❌ Erro ao buscar na TMDb:", err);
-    return [];
-  }
-}
+    card.innerHTML = `
+        <div class="poster">${poster ? `<img src="${poster}" alt="${title}">` : `<div class="no-image">Sem imagem</div>`}</div>
+        <div class="card-info">
+            <h3>${title}</h3>
+            <p class="type">${type === 'movie' ? 'Filme' : 'Série'}</p>
+            <p class="overview">${overview}</p>
+            <button class="toggle-overview">Leia mais</button>
+            <p class="rating">Nota: <span class="stars">${renderStars(rating)}</span></p>
+        </div>
+    `;
 
-// =======================
-// OPENAI API
-// =======================
-async function enviarParaOpenAI(prompt) {
-  try {
-    const res = await fetch(`${API_BASE}/api/openai`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+    const toggleBtn = card.querySelector('.toggle-overview');
+    const overviewP = card.querySelector('.overview');
+    overviewP.style.maxHeight = "80px";
+    overviewP.style.overflow = "hidden";
+    toggleBtn.addEventListener('click', () => {
+        if (toggleBtn.innerText === "Leia mais") {
+            overviewP.style.maxHeight = "500px";
+            toggleBtn.innerText = "Leia menos";
+        } else {
+            overviewP.style.maxHeight = "80px";
+            toggleBtn.innerText = "Leia mais";
+        }
     });
-    const data = await res.json();
-    if (data.error) return "";
-    return data.result || "";
-  } catch (err) {
-    console.error("❌ Erro ao conectar com a IA:", err);
-    return "";
-  }
+
+    return card;
 }
 
-// =======================
-// BUSCA PRINCIPAL
-// =======================
+// Busca TMDb
+async function fetchByGenre(type, genreId) {
+    try {
+        const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}`);
+        const data = await res.json();
+        return data.results || [];
+    } catch (err) {
+        console.error("❌ Erro ao buscar na TMDb:", err);
+        return [];
+    }
+}
+
+// Chamada OpenAI com prompt melhorado
+async function enviarParaOpenAI(prompt) {
+    try {
+        const res = await fetch('/api/openai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+        if (data.error) return data.error;
+        return data.result || "";
+    } catch (err) {
+        console.error("❌ Erro ao conectar com a IA:", err);
+        return "";
+    }
+}
+
+// Busca principal com IA melhorada
 async function search() {
-  const inputOriginal = searchInput.value.trim();
-  if (!inputOriginal) return alert("Digite um gênero ou termo!");
+    const inputOriginal = searchInput.value.trim();
+    if (!inputOriginal) return alert("Digite um gênero ou termo!");
 
-  const input = normalize(inputOriginal);
-  let type, genreId;
+    const input = normalize(inputOriginal);
+    let type, genreId;
 
-  if (movieGenresNormalized[input]) {
-    type = 'movie'; genreId = movieGenresNormalized[input];
-  } else if (tvGenresNormalized[input]) {
-    type = 'tv'; genreId = tvGenresNormalized[input];
-  } else {
-    const prompt = `Dado o termo "${inputOriginal}", sugira um gênero de filme ou série em português.`;
-    const sugestao = await enviarParaOpenAI(prompt);
-    const sugestaoNormalized = normalize(sugestao);
+    if (movieGenresNormalized[input]) {
+        type = 'movie'; genreId = movieGenresNormalized[input];
+    } else if (tvGenresNormalized[input]) {
+        type = 'tv'; genreId = tvGenresNormalized[input];
+    } else {
+        const prompt = `
+        Você é um assistente de recomendação de filmes. 
+        Dado o termo "${inputOriginal}", responda com APENAS UM dos gêneros de filme ou série abaixo, em português, SEM EXPLICAÇÕES:
+        Ação, Comédia, Drama, Terror, Romance, Aventura, Ficção científica, Animação.
+        Se o termo não corresponder a nenhum gênero, escolha o gênero mais próximo e responda somente o nome do gênero.
+        `;
+        let sugestao = await enviarParaOpenAI(prompt);
+        let sugestaoNormalized = normalize(sugestao);
 
-    const possiveisGenres = [...Object.keys(movieGenresNormalized), ...Object.keys(tvGenresNormalized)];
-    let encontrado = false;
+        // ✅ fallback automático
+        if (!generosValidos.includes(sugestaoNormalized)) {
+            console.warn("⚠️ Gênero não reconhecido, aplicando fallback: Ação");
+            sugestaoNormalized = "ação";
+        }
 
-    for (let g of possiveisGenres) {
-      if (sugestaoNormalized.includes(normalize(g))) {
-        if (movieGenresNormalized[normalize(g)]) { type = 'movie'; genreId = movieGenresNormalized[normalize(g)]; }
-        else if (tvGenresNormalized[normalize(g)]) { type = 'tv'; genreId = tvGenresNormalized[normalize(g)]; }
-        encontrado = true;
-        break;
-      }
+        if (movieGenresNormalized[sugestaoNormalized]) {
+            type = 'movie'; genreId = movieGenresNormalized[sugestaoNormalized];
+        } else if (tvGenresNormalized[sugestaoNormalized]) {
+            type = 'tv'; genreId = tvGenresNormalized[sugestaoNormalized];
+        }
     }
 
-    if (!encontrado) {
-      const allGenres = [...Object.keys(movieGenresNormalized)];
-      const randomGenre = allGenres[Math.floor(Math.random() * allGenres.length)];
-      type = 'movie';
-      genreId = movieGenresNormalized[normalize(randomGenre)];
-    }
-  }
+    resultsContainer.innerHTML = '';
+    const results = await fetchByGenre(type, genreId);
+    results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
 
-  resultsContainer.innerHTML = '';
-  const results = await fetchByGenre(type, genreId);
-  results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
-
-  resultsContainer.scrollLeft = 0;
+    resultsContainer.scrollLeft = 0;
 }
 
-// =======================
-// SURPREENDA-ME
-// =======================
+// Surpreenda-me
 async function surprise() {
-  const genres = Object.keys(movieGenres);
-  const randomGenre = genres[Math.floor(Math.random() * genres.length)];
-  searchInput.value = randomGenre;
-  await search();
+    const genres = Object.keys(movieGenres);
+    const randomGenre = genres[Math.floor(Math.random() * genres.length)];
+    searchInput.value = randomGenre;
+    await search();
 }
 
-// =======================
-// BANNER DESTAQUE
-// =======================
-async function loadFeatured() {
-  try {
-    const res = await fetch(`${API_BASE}/api/tmdb?type=movie&genreId=28`);
-    const data = await res.json();
-    const movies = data.results?.slice(0, 5) || [];
-
-    if (movies.length > 0) {
-      let current = 0;
-
-      function updateHero(index) {
-        if (heroSection && heroTitle && heroDescription) {
-          heroTitle.textContent = movies[index].title;
-          heroDescription.textContent = movies[index].overview || "Sem sinopse disponível";
-          heroSection.style.backgroundImage =
-            `linear-gradient(to bottom, rgba(0,0,0,0.6), #000), url(https://image.tmdb.org/t/p/original${movies[index].backdrop_path})`;
-        }
-
-        if (featuredBanner) {
-          featuredBanner.innerHTML = `
-            <img src="https://image.tmdb.org/t/p/original${movies[index].backdrop_path}" alt="${movies[index].title}">
-            <div class="featured-info">
-                <h2>${movies[index].title}</h2>
-                <p>${movies[index].overview || "Sem sinopse disponível"}</p>
-                <p>Nota: ${renderStars(movies[index].vote_average)}</p>
-            </div>
-          `;
-        }
-      }
-
-      updateHero(current);
-      setInterval(() => {
-        current = (current + 1) % movies.length;
-        updateHero(current);
-      }, 6000);
-    }
-  } catch (error) {
-    console.error("❌ Erro ao carregar banner:", error);
-  }
-}
-
-// =======================
-// EVENTOS
-// =======================
+// Eventos
 searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
+
+// Banner de destaque
+async function loadFeatured() {
+    try {
+        const res = await fetch(`/api/tmdb?type=movie&genreId=28`);
+        const data = await res.json();
+        const movies = data.results?.slice(0, 5) || [];
+
+        movies.forEach((movie, index) => {
+            const slide = document.createElement('div');
+            slide.classList.add('featured-slide');
+            if (index === 0) slide.classList.add('active');
+            slide.innerHTML = `
+                <img src="https://image.tmdb.org/t/p/original${movie.backdrop_path}" alt="${movie.title}">
+                <div class="featured-info">
+                    <h2>${movie.title}</h2>
+                    <p>${movie.overview || "Sem sinopse disponível"}</p>
+                    <p>Nota: ${renderStars(movie.vote_average)}</p>
+                </div>
+            `;
+            featuredBanner.appendChild(slide);
+        });
+
+        let current = 0;
+        setInterval(() => {
+            const slides = document.querySelectorAll('.featured-slide');
+            if (slides.length === 0) return;
+            slides[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+        }, 5000);
+    } catch (error) {
+        console.error("❌ Erro ao carregar banner:", error);
+    }
+}
+
 loadFeatured();
