@@ -1,6 +1,7 @@
 {
   "name": "morillaflix",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "config.js",
   "scripts": {
