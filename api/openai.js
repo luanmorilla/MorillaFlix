@@ -18,13 +18,14 @@ export default async function handler(req, res) {
     const completion = await client.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 100,
       temperature: 0.7,
+      max_tokens: 100,
     });
 
-    res.status(200).json({ result: completion.choices[0].message.content });
+    const message = completion?.choices?.[0]?.message?.content || "";
+    res.status(200).json({ result: message });
   } catch (error) {
     console.error("❌ Erro na API OpenAI:", error);
-    res.status(500).json({ error: "Erro interno na IA" });
+    res.status(500).json({ error: error.message || "Erro interno da IA" });
   }
 }
