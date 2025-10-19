@@ -338,3 +338,28 @@ if (linkSobre && sobreSection) {
     window.scrollTo({ top: sobreSection.offsetTop - 60, behavior: 'smooth' });
   });
 }
+// ============================
+// 📌 MOSTRAR / ESCONDER SEÇÕES
+// ============================
+const generosSection = document.querySelector('.generos-section');
+const sobreSection = document.querySelector('.sobre-section');
+const linkGeneros = document.querySelector('.navbar a[href="#generos"]');
+const linkSobre = document.querySelector('.navbar a[href="#sobre"]');
+
+if (linkGeneros && generosSection) {
+  linkGeneros.addEventListener('click', (e) => {
+    e.preventDefault();
+    sobreSection?.classList.remove('active');
+    generosSection.classList.toggle('active');
+    window.scrollTo({ top: generosSection.offsetTop - 60, behavior: 'smooth' });
+  });
+}
+
+if (linkSobre && sobreSection) {
+  linkSobre.addEventListener('click', (e) => {
+    e.preventDefault();
+    generosSection?.classList.remove('active');
+    sobreSection.classList.toggle('active');
+    window.scrollTo({ top: sobreSection.offsetTop - 60, behavior: 'smooth' });
+  });
+}

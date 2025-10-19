@@ -530,3 +530,81 @@ footer {
   50% { transform: translateX(8px) rotate(5deg); }
   100% { transform: translateX(0); }
 }
+/* ===== GÊNEROS / SOBRE escondidos ===== */
+.generos-section,
+.sobre-section {
+  display: none;
+}
+
+.generos-section.active,
+.sobre-section.active {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+/* ===== GORILLA ===== */
+.gorilla {
+  display: inline-block;
+  font-size: 1.8rem;
+  animation: correr 2s linear infinite;
+  filter: drop-shadow(0 0 4px #e50914);
+}
+
+/* ===== CARD MELHOR ORGANIZADO ===== */
+.card-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.overview {
+  font-size: 0.85rem;
+  color: #ccc;
+  line-height: 1.4;
+  max-height: 80px;
+  overflow: hidden;
+}
+
+.toggle-overview {
+  background: #fff;
+  color: #000;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-overview:hover {
+  background: #ddd;
+}
+
+.watch-now, .trailer-btn {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.watch-now {
+  background: linear-gradient(90deg, #e50914, #ff4c4c);
+  color: #fff;
+  font-weight: bold;
+}
+
+.trailer-btn {
+  background: #222;
+  border: 1px solid #e50914;
+  color: #fff;
+}
+
+.trailer-btn:hover {
+  background: #e50914;
+}
