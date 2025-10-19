@@ -87,18 +87,8 @@ function createCard(item,type){
       <button class="toggle-overview" type="button">Leia mais</button>
       <p class="meta">Nota: <span class="stars">${renderStars(rating)}</span></p>
       <div class="actions">
-        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M4 4h2l2 4h8l2-4h2l2 4v12H2V8l2-4zm2 6v8h12v-8H6z"/>
-          </svg>
-          Assistir agora
-        </a>
-        <button class="trailer-btn" type="button">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M17 10.5V7c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-3.5l4 4v-11l-4 4z"/>
-          </svg>
-          Ver Trailer
-        </button>
+        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener">🎬 Assistir agora</a>
+        <button class="trailer-btn" type="button">🎥 Ver Trailer</button>
       </div>
     </div>
   `;
@@ -184,7 +174,7 @@ function renderGeneros(){
   });
 }
 
-// ===== Banner automático com lançamentos =====
+// ===== Banner automático com fallback =====
 let featuredIndex = 0;
 let featuredMovies = [];
 
@@ -194,7 +184,15 @@ async function loadFeatured(){
     const currentYear = new Date().getFullYear();
     const res = await fetch(`/api/tmdb?type=movie&sort_by=popularity.desc&year=${currentYear}&page=1`);
     const data = await res.json();
+
+    // fallback para "populares" se o filtro de ano não retornar nada
     featuredMovies = (data.results || []).filter(x => x.backdrop_path);
+    if(featuredMovies.length === 0){
+      const res2 = await fetch(`/api/tmdb?type=movie&sort_by=popularity.desc&page=1`);
+      const data2 = await res2.json();
+      featuredMovies = (data2.results || []).filter(x => x.backdrop_path);
+    }
+
     if(featuredMovies.length === 0) return;
 
     showFeaturedBanner();
@@ -213,7 +211,7 @@ function showFeaturedBanner(){
   const movie = featuredMovies[featuredIndex];
   featuredMovieId = movie.id;
   featuredBanner.classList.remove('fade');
-  void featuredBanner.offsetWidth; // reinicia animação
+  void featuredBanner.offsetWidth;
   featuredBanner.classList.add('fade');
   featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
   heroTitle.textContent = movie.title || "Destaque";
@@ -244,13 +242,22 @@ async function fetchTrailer(id,type,overview){
   try{
     const res = await fetch(`/api/tmdb/trailer?id=${id}&type=${type}`);
     const data = await res.json();
-    if(data.key) openTrailer(data.key);
-    else speak(overview || "Sinopse não disponível.");
+    if(data && data.key){
+      openTrailer(data.key);
+    } else {
+      // Fallback se não tiver trailer
+      speak(overview || "Sinopse não disponível.");
+    }
   }catch(e){
-    console.error(e); speak(overview || "Não foi possível carregar o trailer.");
+    console.error(e);
+    speak(overview || "Não foi possível carregar o trailer.");
   }
 }
-function speak(txt){ const u=new SpeechSynthesisUtterance(txt); u.lang='pt-BR'; u.rate=1; speechSynthesis.speak(u); }
+function speak(txt){
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang='pt-BR'; u.rate=1;
+  speechSynthesis.speak(u);
+}
 
 // ===== Navegação entre seções
 document.querySelectorAll('.navbar a').forEach(a=>{
