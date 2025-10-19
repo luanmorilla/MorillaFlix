@@ -341,3 +341,34 @@ footer {
 .favorite-btn.active {
   color: gold;
 }
+/* ======== BOTÃO DE TRAILER ======== */
+.trailer-btn {
+  width: 100%;
+  background: transparent;
+  border: 2px solid #e50914;
+  color: #e50914;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 0.85rem;
+  font-weight: bold;
+  border-radius: 5px;
+  margin-top: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.trailer-btn:hover {
+  background: #e50914;
+  color: #fff;
+  transform: scale(1.02);
+}
+
+.trailer-btn:active {
+  transform: scale(0.98);
+}
+.card-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
