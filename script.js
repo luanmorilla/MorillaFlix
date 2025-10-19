@@ -1,4 +1,13 @@
-// ===== Seletores principais
+/* =========================================================================
+   MORILLALFLIX — script.js (versão PRO)
+   - Destaques (banner) com carrossel automático e fade
+   - “Receba sugestões pelo seu humor” funcionando
+   - Busca com IA + fallback
+   - Trailers robustos com fallback
+   - Utilitários de rede (timeout + retry)
+   ========================================================================= */
+
+// ===== Seletores principais (DOM)
 const featuredBanner   = document.querySelector('.hero');
 const heroTrailerBtn   = document.getElementById('hero-trailer-btn');
 const resultsTitle     = document.querySelector('.results-section h3');
@@ -9,6 +18,7 @@ const surpriseButton   = document.getElementById('surprise-button');
 const generosSection   = document.querySelector('.generos-section');
 const sobreSection     = document.querySelector('.sobre-section');
 const generosContainer = document.getElementById('generos-container');
+const moodButtonsWrap  = document.querySelector('.mood-buttons');
 
 const heroTitle        = document.getElementById('hero-title');
 const heroDesc         = document.getElementById('hero-description');
@@ -31,11 +41,69 @@ const tvGenres = {
   "Guerra e Política": 10768,"Faroeste": 37
 };
 
-// ===== Funções auxiliares
+// ===== Mapas auxiliares
 const normalize = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const movieGenresNorm = Object.fromEntries(Object.entries(movieGenres).map(([k,v])=>[normalize(k),v]));
 const tvGenresNorm    = Object.fromEntries(Object.entries(tvGenres).map(([k,v])=>[normalize(k),v]));
 
+// Mapear humores → gênero + tipo (ajuste fino do “feeling”)
+const MOOD_MAP = {
+  "animado":      { genero: "Ação",            type: "movie" },
+  "triste":       { genero: "Comédia",         type: "movie" },
+  "assustado":    { genero: "Terror",          type: "movie" },
+  "romântico":    { genero: "Romance",         type: "movie" },
+  "romantico":    { genero: "Romance",         type: "movie" }, // sem acento
+  "entediado":    { genero: "Aventura",        type: "movie" },
+  // extras
+  "nervoso":      { genero: "Thriller",        type: "movie" },
+  "pensativo":    { genero: "Drama",           type: "movie" },
+  "curioso":      { genero: "Mistério",        type: "movie" },
+  "futurista":    { genero: "Ficção científica", type: "movie" },
+  "família":      { genero: "Família",         type: "movie" },
+  "familia":      { genero: "Família",         type: "movie" },
+};
+
+// ===== IA
+let iaContext = "";
+async function askAI(prompt){
+  try{
+    const full = `Histórico:\n${iaContext}\nUsuário: ${prompt}\nResponda apenas "genero|tipo" (ex: Ação|filme).`;
+    const res = await fetchJSON('/api/openai', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:full})
+    });
+    const answer = (res && res.result) ? String(res.result) : "";
+    iaContext += `\nIA: ${answer}`;
+    return answer;
+  }catch(e){
+    console.warn('OpenAI fallback usado:', e);
+    return "";
+  }
+}
+
+// ===== Utilitários de rede (timeout + retry)
+async function fetchJSON(url, options = {}, { timeoutMs = 12000, retries = 1 } = {}){
+  for(let attempt=0; attempt<=retries; attempt++){
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), timeoutMs);
+    try{
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(t);
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }catch(err){
+      clearTimeout(t);
+      if(attempt === retries){
+        console.error(`fetchJSON falhou ${url}:`, err);
+        throw err;
+      }
+      await new Promise(r=>setTimeout(r, 400*(attempt+1)));
+    }
+  }
+}
+
+// ===== Estrelas
 function renderStars(vote=0){
   const full = Math.floor(vote/2);
   const half = vote%2>=1 ? 1 : 0;
@@ -46,26 +114,31 @@ function renderStars(vote=0){
 // ===== Loading nos resultados
 function showLoading(){
   resultsContainer.innerHTML = `
-    <div class="loading-container">
+    <div class="loading-container" role="status" aria-live="polite">
       <div class="spinner"></div>
       <span class="loading-text">Carregando recomendações…</span>
     </div>
   `;
 }
 
-// ===== Loading no banner
+// ===== Loader do banner (NÃO substituir o conteúdo do hero!)
+let heroLoaderEl = null;
 function showHeroLoading(){
-  featuredBanner.style.backgroundImage = 'none';
-  featuredBanner.innerHTML = `
-    <div class="hero-loading">
-      <div class="spinner"></div>
-      <span class="loading-text">Carregando destaque…</span>
-    </div>
+  if(heroLoaderEl) return;
+  heroLoaderEl = document.createElement('div');
+  heroLoaderEl.className = 'hero-loading';
+  heroLoaderEl.innerHTML = `
+    <div class="spinner"></div>
+    <span class="loading-text">Carregando destaque…</span>
   `;
+  heroLoaderEl.setAttribute('aria-live','polite');
+  featuredBanner.appendChild(heroLoaderEl); // 👈 anexa, não apaga o hero-content
 }
 function clearHeroLoading(){
-  const heroLoading = document.querySelector('.hero-loading');
-  if(heroLoading) heroLoading.remove();
+  if(heroLoaderEl){
+    heroLoaderEl.remove();
+    heroLoaderEl = null;
+  }
 }
 
 // ===== Cards
@@ -84,15 +157,22 @@ function createCard(item,type){
       <h3>${title}</h3>
       <p class="type">${type==='movie' ? 'Filme' : 'Série'}</p>
       <p class="overview">${overview}</p>
-      <button class="toggle-overview" type="button">Leia mais</button>
+      <button class="toggle-overview" type="button" aria-label="Expandir sinopse">Leia mais</button>
       <p class="meta">Nota: <span class="stars">${renderStars(rating)}</span></p>
       <div class="actions">
-        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener">🎬 Assistir agora</a>
-        <button class="trailer-btn" type="button">🎥 Ver Trailer</button>
+        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener" aria-label="Assistir agora">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h2l2 4h8l2-4h2l2 4v12H2V8l2-4zm2 6v8h12v-8H6z"/></svg>
+          Assistir agora
+        </a>
+        <button class="trailer-btn" type="button" aria-label="Ver trailer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 10.5V7c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-3.5l4 4v-11l-4 4z"/></svg>
+          Ver Trailer
+        </button>
       </div>
     </div>
   `;
 
+  // Expand/contrair sinopse
   const btn = el.querySelector('.toggle-overview');
   const txt = el.querySelector('.overview');
   let expanded = false;
@@ -102,57 +182,53 @@ function createCard(item,type){
     btn.textContent = expanded ? 'Leia menos' : 'Leia mais';
   });
 
+  // Trailer
   el.querySelector('.trailer-btn').addEventListener('click',()=>fetchTrailer(item.id,type,overview));
   return el;
 }
 
-// ===== TMDb
+// ===== TMDb (busca por gênero para resultados)
 async function fetchByGenre(type,genreId){
   try{
     const page = Math.floor(Math.random()*10)+1;
-    const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}&page=${page}`);
-    if(!res.ok) throw new Error('TMDb falhou');
-    const data = await res.json();
+    const data = await fetchJSON(`/api/tmdb?type=${type}&genreId=${genreId}&page=${page}`, {}, {retries:1});
     return data.results || [];
   }catch(e){
-    console.error(e);
+    console.error('fetchByGenre', e);
     return [];
   }
 }
 
-// ===== IA
-let iaContext = "";
-async function askAI(prompt){
-  try{
-    const full = `Histórico:\n${iaContext}\nUsuário: ${prompt}\nResponda apenas "genero|tipo" (ex: Ação|filme).`;
-    const res = await fetch('/api/openai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full})});
-    const data = await res.json();
-    const answer = (data && data.result) ? String(data.result) : "";
-    iaContext += `\nIA: ${answer}`;
-    return answer;
-  }catch(e){
-    console.error('OpenAI error',e);
-    return "";
-  }
-}
-
-// ===== Busca principal
+// ===== Busca principal (IA + fallback)
 async function search(text=null){
   const input = (text ?? searchInput.value).trim();
   if(!input) return;
   showLoading();
 
+  // Delega pra IA interpretar (mas temos fallback)
   const ai = await askAI(input);
-  let [genero,tipo] = ai.split('|').map(s=> (s||'').trim().toLowerCase());
-  let type = (tipo==='série'||tipo==='serie') ? 'tv' : 'movie';
+  let [generoRaw,tipoRaw] = ai.split('|').map(s=> (s||'').trim().toLowerCase());
 
-  let genreId = movieGenresNorm[normalize(genero)] || tvGenresNorm[normalize(genero)];
-  if(!genreId){ type = 'movie'; genreId = movieGenres["Ação"]; }
+  // Fallback se IA não ajudar
+  if(!generoRaw){
+    // tenta descobrir por palavra-chave do input
+    const norm = normalize(input);
+    const keys = Object.keys(movieGenresNorm);
+    generoRaw = keys.find(k => norm.includes(normalize(k))) || "ação";
+  }
+  let type = (tipoRaw==='série'||tipoRaw==='serie'||normalize(input).includes('série')||normalize(input).includes('serie')) ? 'tv' : 'movie';
+
+  let genreId = movieGenresNorm[normalize(generoRaw)] || tvGenresNorm[normalize(generoRaw)];
+  if(!genreId){
+    type = 'movie';
+    genreId = movieGenres["Ação"];
+  }
 
   const items = await fetchByGenre(type,genreId);
   resultsContainer.innerHTML = "";
   items.forEach(it => resultsContainer.appendChild(createCard(it,type)));
 
+  // fade-in nos resultados
   resultsContainer.style.opacity = "0";
   setTimeout(() => {
     resultsContainer.style.opacity = "1";
@@ -160,9 +236,11 @@ async function search(text=null){
   }, 50);
 
   resultsTitle.textContent = `Resultados (${items.length})`;
+  // rolar até resultados
+  window.scrollTo({ top: resultsContainer.offsetTop - 70, behavior: 'smooth' });
 }
 
-// ===== Render gêneros
+// ===== Renderização da lista de gêneros
 function renderGeneros(){
   if(!generosContainer) return;
   generosContainer.innerHTML = "";
@@ -174,53 +252,101 @@ function renderGeneros(){
   });
 }
 
-// ===== Banner automático com fallback =====
+/* ========================================================================
+   BANNER (DESTAQUES) — Carrossel robusto com fade e fallback
+   - Coleta uma lista de filmes com backdrop a partir de várias fontes:
+     * múltiplos gêneros aleatórios (páginas aleatórias)  -> mais resiliente
+   - Não depende de year/sort_by do backend (evita travar)
+   ======================================================================== */
 let featuredIndex = 0;
 let featuredMovies = [];
+let featuredMovieId = null;
+let bannerTimer = null;
 
 async function loadFeatured(){
   try{
     showHeroLoading();
-    const currentYear = new Date().getFullYear();
-    const res = await fetch(`/api/tmdb?type=movie&sort_by=popularity.desc&year=${currentYear}&page=1`);
-    const data = await res.json();
 
-    // fallback para "populares" se o filtro de ano não retornar nada
-    featuredMovies = (data.results || []).filter(x => x.backdrop_path);
-    if(featuredMovies.length === 0){
-      const res2 = await fetch(`/api/tmdb?type=movie&sort_by=popularity.desc&page=1`);
-      const data2 = await res2.json();
-      featuredMovies = (data2.results || []).filter(x => x.backdrop_path);
+    // Tenta montar uma lista com backdrops a partir de vários gêneros/páginas
+    const genreIds = Object.values(movieGenres);
+    const picks = [];
+
+    // Faz várias tentativas para garantir uma boa lista
+    for(let i=0; i<6; i++){
+      const gid = genreIds[Math.floor(Math.random()*genreIds.length)];
+      const pg  = Math.floor(Math.random()*6)+1; // 1..6 para variar
+      try{
+        const data = await fetchJSON(`/api/tmdb?type=movie&genreId=${gid}&page=${pg}`, {}, {retries:1});
+        const withBackdrop = (data.results || []).filter(x=>x && x.backdrop_path);
+        picks.push(...withBackdrop);
+        if(picks.length >= 12) break; // já temos uma fila legal
+      }catch(err){
+        console.warn('Tentativa de banner falhou (continua):', err);
+      }
     }
 
-    if(featuredMovies.length === 0) return;
+    featuredMovies = shuffleArray(picks).slice(0, 12);
+    if(featuredMovies.length === 0){
+      clearHeroLoading();
+      // Mostra um estado digno mesmo sem itens
+      featuredBanner.style.backgroundImage = 'none';
+      heroTitle.textContent = "Sem destaques no momento";
+      heroDesc.textContent  = "Tente novamente mais tarde ou faça uma busca.";
+      heroWatchBtn.href     = AFFILIATE_LINK;
+      return;
+    }
 
+    // Exibe imediatamente o primeiro
     showFeaturedBanner();
     clearHeroLoading();
 
-    setInterval(() => {
+    // Inicia rotação
+    if(bannerTimer) clearInterval(bannerTimer);
+    bannerTimer = setInterval(()=>{
       featuredIndex = (featuredIndex + 1) % featuredMovies.length;
       showFeaturedBanner();
     }, 10000);
+
   }catch(e){
-    console.error('banner',e);
+    console.error('loadFeatured fatal:', e);
+    clearHeroLoading();
   }
 }
 
 function showFeaturedBanner(){
   const movie = featuredMovies[featuredIndex];
+  if(!movie) return;
+
   featuredMovieId = movie.id;
+  // Reinicia animação de fade
   featuredBanner.classList.remove('fade');
   void featuredBanner.offsetWidth;
   featuredBanner.classList.add('fade');
+
   featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
   heroTitle.textContent = movie.title || "Destaque";
-  heroDesc.textContent = movie.overview || "Sem sinopse disponível";
-  heroWatchBtn.href = AFFILIATE_LINK;
+  heroDesc.textContent  = movie.overview || "Sem sinopse disponível";
+  heroWatchBtn.href     = AFFILIATE_LINK;
 }
-heroTrailerBtn.addEventListener('click',()=>{ if(featuredMovieId) fetchTrailer(featuredMovieId,'movie'); });
 
-// ===== Trailer Modal
+// shuffle simples para variar banners
+function shuffleArray(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// Botão “Ver Trailer” do banner
+heroTrailerBtn.addEventListener('click',()=>{
+  if(featuredMovieId) fetchTrailer(featuredMovieId,'movie',heroDesc.textContent);
+});
+
+/* ========================================================================
+   TRAILER (Modal) — com fallback e idiomas
+   ======================================================================== */
 function openTrailer(key){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
@@ -236,22 +362,33 @@ function closeTrailer(){
   modal.setAttribute('aria-hidden','true');
 }
 document.getElementById('close-modal').addEventListener('click',closeTrailer);
-document.getElementById('trailer-modal').addEventListener('click',e=>{ if(e.target.id==='trailer-modal') closeTrailer(); });
+document.getElementById('trailer-modal').addEventListener('click',e=>{
+  if(e.target.id==='trailer-modal') closeTrailer();
+});
 
+// tenta trailer pt-BR, depois en-US, depois speak
 async function fetchTrailer(id,type,overview){
   try{
-    const res = await fetch(`/api/tmdb/trailer?id=${id}&type=${type}`);
-    const data = await res.json();
+    // 1) tenta pt-BR
+    let data = await tryTrailer(id,type,'pt-BR');
+    if(!(data && data.key)){
+      // 2) tenta en-US
+      data = await tryTrailer(id,type,'en-US');
+    }
     if(data && data.key){
       openTrailer(data.key);
-    } else {
-      // Fallback se não tiver trailer
+    }else{
       speak(overview || "Sinopse não disponível.");
     }
   }catch(e){
-    console.error(e);
+    console.error('fetchTrailer', e);
     speak(overview || "Não foi possível carregar o trailer.");
   }
+}
+async function tryTrailer(id,type,lang){
+  try{
+    return await fetchJSON(`/api/tmdb/trailer?id=${id}&type=${type}&lang=${encodeURIComponent(lang)}`, {}, {retries:0});
+  }catch(_){ return null; }
 }
 function speak(txt){
   const u = new SpeechSynthesisUtterance(txt);
@@ -259,7 +396,9 @@ function speak(txt){
   speechSynthesis.speak(u);
 }
 
-// ===== Navegação entre seções
+/* ========================================================================
+   NAVEGAÇÃO — mostrar/ocultar seções
+   ======================================================================== */
 document.querySelectorAll('.navbar a').forEach(a=>{
   a.addEventListener('click',e=>{
     const target = a.dataset.nav;
@@ -273,16 +412,42 @@ document.querySelectorAll('.navbar a').forEach(a=>{
       e.preventDefault();
       renderGeneros();
       generosSection.classList.add('active');
-      window.scrollTo({top:generosSection.offsetTop-60,behavior:'smooth'});
+      window.scrollTo({top:generosSection.offsetTop-70,behavior:'smooth'});
     }else if(target==='sobre'){
       e.preventDefault();
       sobreSection.classList.add('active');
-      window.scrollTo({top:sobreSection.offsetTop-60,behavior:'smooth'});
+      window.scrollTo({top:sobreSection.offsetTop-70,behavior:'smooth'});
     }
   });
 });
 
-// ===== Eventos
+/* ========================================================================
+   HUMOR — conecta os botões de humor à busca
+   ======================================================================== */
+if(moodButtonsWrap){
+  moodButtonsWrap.querySelectorAll('button[data-mood]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      // visual ativo
+      moodButtonsWrap.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const mood = (btn.dataset.mood || '').toLowerCase();
+      const map  = MOOD_MAP[mood];
+      if(map){
+        // Dispara busca: “genero|tipo” para IA aceitar também
+        const prompt = `${map.genero}|${map.type==='tv'?'série':'filme'}`;
+        search(prompt);
+      }else{
+        // fallback: só usa o texto do botão
+        search(mood || 'Ação');
+      }
+    });
+  });
+}
+
+/* ========================================================================
+   EVENTOS — busca / enter / surpreenda-me
+   ======================================================================== */
 searchButton.addEventListener('click',()=>search());
 searchInput.addEventListener('keyup',e=>{ if(e.key==='Enter') search(); });
 surpriseButton.addEventListener('click',()=>{
@@ -291,7 +456,9 @@ surpriseButton.addEventListener('click',()=>{
   search(gen);
 });
 
-// ===== Boot
-loadFeatured();
+/* ========================================================================
+   BOOT
+   ======================================================================== */
 renderGeneros();
 resultsTitle.textContent = 'Top do momento';
+loadFeatured(); // carrega banners depois que DOM está pronto
