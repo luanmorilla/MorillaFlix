@@ -5,9 +5,12 @@ const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
 const heroTrailerBtn = document.getElementById('hero-trailer-btn');
+const resultsTitle = document.querySelector('.results-section h3');
+const generosContainer = document.getElementById('generos-container');
+
 const AFFILIATE_LINK = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
 
-// 🎥 Gêneros TMDb — Filmes e Séries
+// 🎥 Gêneros TMDb
 const movieGenres = {
   "Ação": 28, "Aventura": 12, "Animação": 16, "Comédia": 35, "Crime": 80,
   "Documentário": 99, "Drama": 18, "Família": 10751, "Fantasia": 14,
@@ -24,7 +27,6 @@ const tvGenres = {
   "Faroeste": 37
 };
 
-// 🧠 Normalização
 function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -36,6 +38,9 @@ const tvGenresNormalized = {};
 for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
 const generosValidos = Object.keys(movieGenresNormalized).concat(Object.keys(tvGenresNormalized));
+
+// 🧠 CONTEXTO DE CONVERSA (IA)
+let iaContexto = "";
 
 // ⭐ Avaliação
 function renderStars(vote) {
@@ -54,15 +59,13 @@ function hideLoading() {
   if (loader) loader.remove();
 }
 
-// 🃏 Cards de filme
+// 🃏 Cards
 function createCard(item, type) {
   const card = document.createElement('div');
   card.classList.add('card');
-
   const title = item.title || item.name || "Sem título";
   let overview = item.overview || "Sem sinopse disponível";
   if (window.innerWidth <= 768 && overview.length > 120) overview = overview.slice(0, 120) + "...";
-
   const rating = item.vote_average || 0;
   const poster = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : null;
 
@@ -95,21 +98,16 @@ function createCard(item, type) {
 
   const trailerBtn = card.querySelector('.trailer-btn');
   trailerBtn.addEventListener('click', () => fetchTrailer(item.id, type, overview));
-
   return card;
 }
 
-// 📡 Busca TMDb
+// 📡 TMDB
 async function fetchByGenre(type, genreId) {
   try {
-    if (!type || !genreId) {
-      type = 'movie';
-      genreId = movieGenres["Ação"];
-    }
+    if (!type || !genreId) { type = 'movie'; genreId = movieGenres["Ação"]; }
     const randomPage = Math.floor(Math.random() * 10) + 1;
     const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}&page=${randomPage}`);
     if (!res.ok) throw new Error("Erro ao buscar na TMDb");
-
     const data = await res.json();
     return data.results || [];
   } catch (err) {
@@ -118,79 +116,85 @@ async function fetchByGenre(type, genreId) {
   }
 }
 
-// 🧠 IA - Sugestão de gênero
+// 🧠 IA aprimorada
 async function enviarParaOpenAI(prompt) {
   try {
+    const fullPrompt = `
+      Histórico: ${iaContexto}
+      Nova mensagem: ${prompt}
+      ---
+      Responda com:
+      - Um gênero exato (Ação, Comédia, Terror, etc)
+      - Se for filme ou série
+      - (Opcional) estilo adicional se houver.
+      Resposta no formato: genero|tipo
+    `;
     const res = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt: fullPrompt })
     });
     const data = await res.json();
     if (data.error) return "";
+    iaContexto += `\nUsuário: ${prompt}\nIA: ${data.result}`;
     return data.result || "";
   } catch (err) {
-    console.error("❌ Erro ao conectar com a IA:", err);
+    console.error("❌ Erro IA:", err);
     return "";
   }
 }
 
-// 🔍 Busca normal
-async function search() {
-  const inputOriginal = searchInput.value.trim();
-  if (!inputOriginal) return alert("Digite um gênero ou termo!");
-
+// 🔍 Busca com IA central
+async function search(frase = null) {
+  const texto = frase || searchInput.value.trim();
+  if (!texto) return alert("Digite algo ou escolha um gênero!");
   showLoading();
-  const input = normalize(inputOriginal);
-  let type, genreId;
 
-  if (movieGenresNormalized[input]) {
-    type = 'movie'; genreId = movieGenresNormalized[input];
-  } else if (tvGenresNormalized[input]) {
-    type = 'tv'; genreId = tvGenresNormalized[input];
-  } else {
-    const prompt = `
-      Você é um assistente de recomendação de filmes. 
-      Dado o termo "${inputOriginal}", responda com APENAS UM dos gêneros de filme ou série abaixo:
-      ${Object.keys(movieGenres).join(", ")}, ${Object.keys(tvGenres).join(", ")}.
-    `;
-    let sugestao = await enviarParaOpenAI(prompt);
-    let sugestaoNormalized = normalize(sugestao);
-    if (!generosValidos.includes(sugestaoNormalized)) sugestaoNormalized = "ação";
+  const interpretado = await enviarParaOpenAI(texto);
+  let [genero, tipo] = interpretado.split("|").map(s => s.trim().toLowerCase());
 
-    if (movieGenresNormalized[sugestaoNormalized]) {
-      type = 'movie'; genreId = movieGenresNormalized[sugestaoNormalized];
-    } else if (tvGenresNormalized[sugestaoNormalized]) {
-      type = 'tv'; genreId = tvGenresNormalized[sugestaoNormalized];
-    }
-  }
+  let type = tipo === "série" || tipo === "serie" ? "tv" : "movie";
+  let generoId = movieGenresNormalized[normalize(genero)] || tvGenresNormalized[normalize(genero)];
 
-  const results = await fetchByGenre(type, genreId);
+  if (!generoId) { generoId = movieGenres["Ação"]; type = "movie"; }
+
+  const results = await fetchByGenre(type, generoId);
   resultsContainer.innerHTML = '';
   results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
+  resultsTitle.textContent = `Resultados (${results.length})`;
 }
 
-// 🎲 Surpreenda-me
+// Gêneros
+function renderGenerosList() {
+  const generos = Object.keys(movieGenres);
+  generos.forEach(gen => {
+    const btn = document.createElement('button');
+    btn.textContent = gen;
+    btn.addEventListener('click', () => search(gen));
+    generosContainer.appendChild(btn);
+  });
+}
+renderGenerosList();
+
+// Surpreenda-me
 async function surprise() {
   const genres = Object.keys(movieGenres);
   const randomGenre = genres[Math.floor(Math.random() * genres.length)];
   searchInput.value = randomGenre;
-  await search();
+  await search(randomGenre);
 }
 
-// 🖼️ Banner dinâmico
+// Banner
 let featuredMovieId = null;
 async function loadFeatured() {
   try {
     const genreIds = Object.values(movieGenres);
     const randomGenreId = genreIds[Math.floor(Math.random() * genreIds.length)];
     const randomPage = Math.floor(Math.random() * 10) + 1;
-
     const res = await fetch(`/api/tmdb?type=movie&genreId=${randomGenreId}&page=${randomPage}`);
     const data = await res.json();
     const movies = data.results?.slice(0, 5) || [];
     let current = 0;
-
     function atualizarBanner(index) {
       const movie = movies[index];
       if (!movie) return;
@@ -200,7 +204,6 @@ async function loadFeatured() {
       document.getElementById("hero-description").textContent = movie.overview || "Sem sinopse disponível";
       document.getElementById("hero-watch-btn").href = AFFILIATE_LINK;
     }
-
     atualizarBanner(current);
     setInterval(() => {
       current = (current + 1) % movies.length;
@@ -210,51 +213,39 @@ async function loadFeatured() {
     console.error("❌ Erro ao carregar banner:", error);
   }
 }
-
-heroTrailerBtn.addEventListener('click', () => {
-  if (featuredMovieId) fetchTrailer(featuredMovieId, "movie");
-});
-
+heroTrailerBtn.addEventListener('click', () => { if (featuredMovieId) fetchTrailer(featuredMovieId, "movie"); });
 loadFeatured();
 
-// ======== MODAL DO TRAILER ========
+// Trailer
 function openTrailer(videoKey) {
   const modal = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-video");
   iframe.src = `https://www.youtube.com/embed/${videoKey}?autoplay=1`;
   modal.style.display = "flex";
 }
-
 function closeTrailer() {
   const modal = document.getElementById("trailer-modal");
   const iframe = document.getElementById("trailer-video");
   iframe.src = "";
   modal.style.display = "none";
 }
-
 document.getElementById("close-modal").addEventListener("click", closeTrailer);
 document.getElementById("trailer-modal").addEventListener("click", (e) => {
   if (e.target.id === "trailer-modal") closeTrailer();
 });
-
-// ======== FETCH TRAILER + NARRAÇÃO ========
 async function fetchTrailer(id, type, overviewText) {
   try {
     const res = await fetch(`/api/tmdb/trailer?id=${id}&type=${type}`);
     const data = await res.json();
-
-    if (data.key) {
-      openTrailer(data.key);
-    } else {
-      speakText(overviewText || "Sinopse não disponível.");
-    }
+    if (data.key) openTrailer(data.key);
+    else speakText(overviewText || "Sinopse não disponível.");
   } catch (err) {
-    console.error("❌ Erro ao buscar trailer:", err);
+    console.error("❌ Erro trailer:", err);
     speakText(overviewText || "Não foi possível carregar o trailer.");
   }
 }
 
-// 🗣️ Narração com voz do navegador
+// Narração
 function speakText(text) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "pt-BR";
@@ -262,80 +253,37 @@ function speakText(text) {
   speechSynthesis.speak(utter);
 }
 
-// ======== IA CURADOR ========
+// Humor
 const moodButtons = document.querySelectorAll('.mood-buttons button');
-
-const moodPrompts = {
-  animado: "Usuário está animado, recomende filmes de ação, aventura ou comédia.",
-  triste: "Usuário está triste, recomende filmes de comédia leve ou animações.",
-  assustado: "Usuário quer sustos, recomende filmes de terror e suspense.",
-  romantico: "Usuário está romântico, recomende filmes de romance.",
-  entediado: "Usuário está entediado, recomende filmes populares e diferentes."
-};
-
 moodButtons.forEach(button => {
   button.addEventListener('click', async () => {
-    showLoading();
     const mood = button.dataset.mood;
-    const prompt = moodPrompts[mood];
-
-    const genreSuggestion = await enviarParaOpenAI(`
-      Você é um assistente de recomendação de filmes.
-      Com base no humor "${mood}", sugira APENAS UM gênero exato da lista:
-      ${Object.keys(movieGenres).join(", ")}, ${Object.keys(tvGenres).join(", ")}.
-    `);
-
-    const normalizedGenre = normalize(genreSuggestion);
-    let type, genreId;
-
-    if (movieGenresNormalized[normalizedGenre]) {
-      type = 'movie';
-      genreId = movieGenresNormalized[normalizedGenre];
-    } else if (tvGenresNormalized[normalizedGenre]) {
-      type = 'tv';
-      genreId = tvGenresNormalized[normalizedGenre];
-    } else {
-      type = 'movie';
-      genreId = movieGenres["Ação"];
-    }
-
-    const results = await fetchByGenre(type, genreId);
-    resultsContainer.innerHTML = '';
-    results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
+    await search(`baseado no meu humor ${mood}`);
   });
 });
 
-// Eventos principais
-searchButton.addEventListener('click', search);
-searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
-surpriseButton.addEventListener('click', surprise);
-// 🛎️ Notificações amigáveis
+// Notificações
 function showNotification(message) {
   const notification = document.getElementById('notification');
   notification.textContent = message;
   notification.classList.add('show');
-  setTimeout(() => {
-    notification.classList.remove('show');
-  }, 4000);
+  setTimeout(() => notification.classList.remove('show'), 4000);
 }
-// Rolagem suave para seções da navbar
+
+// Navegação suave
 document.querySelectorAll('.navbar a').forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
     const targetId = link.getAttribute('href').replace('#', '');
     const targetSection = document.getElementById(targetId);
     if (targetSection) {
-      window.scrollTo({
-        top: targetSection.offsetTop - 60, // 👈 compensa o header fixo
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: targetSection.offsetTop - 60, behavior: 'smooth' });
     }
   });
 });
-// Destacar botão ativo
 window.addEventListener('scroll', () => {
   const sections = document.querySelectorAll('section[id]');
-  let scrollY = window.scrollY + 70; // compensar header fixo
+  let scrollY = window.scrollY + 70;
   sections.forEach(sec => {
     const link = document.querySelector(`.navbar a[href="#${sec.id}"]`);
     if (scrollY >= sec.offsetTop && scrollY < sec.offsetTop + sec.offsetHeight) {
@@ -344,3 +292,8 @@ window.addEventListener('scroll', () => {
     }
   });
 });
+
+// Eventos principais
+searchButton.addEventListener('click', () => search());
+searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
+surpriseButton.addEventListener('click', surprise);

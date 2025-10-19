@@ -19,7 +19,7 @@
     <nav class="navbar">
       <ul>
         <li><a href="#inicio">Início</a></li>
-        <li><a href="#generos">Gêneros</a></li>
+        <li><a href="#lista-generos">Gêneros</a></li>
         <li><a href="#favoritos">Favoritos</a></li>
         <li><a href="#sobre">Sobre</a></li>
       </ul>
@@ -56,12 +56,20 @@
   <!-- ===========================
        CAMPO DE PESQUISA
   ============================ -->
-  <section id="generos" class="search-section">
+  <section class="search-section">
     <input type="text" id="search-input" placeholder="Digite o gênero (Ação, Comédia...)" />
     <div class="buttons">
       <button id="search-button" class="btn-primary">Buscar</button>
       <button id="surprise-button" class="btn-secondary">Surpreenda-me</button>
     </div>
+  </section>
+
+  <!-- ===========================
+       LISTA DE GÊNEROS
+  ============================ -->
+  <section id="lista-generos" class="generos-section">
+    <h3>🎭 Todos os Gêneros</h3>
+    <div id="generos-container" class="generos-container"></div>
   </section>
 
   <!-- ===========================
@@ -89,6 +97,15 @@
       <iframe id="trailer-video" src="" frameborder="0" allowfullscreen></iframe>
     </div>
   </div>
+
+  <!-- ===========================
+       SOBRE
+  ============================ -->
+  <section id="sobre" class="sobre-section">
+    <h3>📽️ Sobre o MorillaFlix</h3>
+    <p>MorillaFlix é uma plataforma gratuita de recomendações de filmes. Nosso objetivo é te ajudar a encontrar rapidamente algo incrível para assistir, sem perder tempo navegando em catálogos infinitos.</p>
+    <p>🎯 Indicações baseadas no seu humor • ✨ Sugestões inteligentes com IA • 🍿 Trailers disponíveis.</p>
+  </section>
 
   <!-- ===========================
        NOTIFICAÇÕES PERSONALIZADAS
