@@ -4,6 +4,7 @@ const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const surpriseButton = document.getElementById('surprise-button');
 const resultsContainer = document.getElementById('results');
+const heroTrailerBtn = document.getElementById('hero-trailer-btn');
 const AFFILIATE_LINK = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
 
 // 🎥 Gêneros TMDb — Filmes e Séries
@@ -44,7 +45,7 @@ function renderStars(vote) {
   return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// 🃏 Cria card com botão de afiliado
+// 🃏 Cria card com botão de trailer
 function createCard(item, type) {
   const card = document.createElement('div');
   card.classList.add('card');
@@ -65,9 +66,11 @@ function createCard(item, type) {
         <button class="toggle-overview">Leia mais</button>
         <p class="rating">Nota: <span class="stars">${renderStars(rating)}</span></p>
         <a href="${AFFILIATE_LINK}" target="_blank" class="watch-now">🎬 Assistir agora</a>
+        <button class="trailer-btn">🎥 Ver Trailer</button>
     </div>
   `;
 
+  // botão de ler mais
   const toggleBtn = card.querySelector('.toggle-overview');
   const overviewP = card.querySelector('.overview');
   overviewP.style.maxHeight = "80px";
@@ -82,6 +85,10 @@ function createCard(item, type) {
     }
   });
 
+  // botão de trailer
+  const trailerBtn = card.querySelector('.trailer-btn');
+  trailerBtn.addEventListener('click', () => fetchTrailer(item.id, type));
+
   return card;
 }
 
@@ -89,14 +96,10 @@ function createCard(item, type) {
 async function fetchByGenre(type, genreId) {
   try {
     if (!type || !genreId) {
-      console.warn("⚠️ Nenhum gênero válido retornado. Fallback aplicado: Ação.");
       type = 'movie';
       genreId = movieGenres["Ação"];
     }
-
-    // 👉 Página aleatória entre 1 e 10 (para variar os resultados)
     const randomPage = Math.floor(Math.random() * 10) + 1;
-
     const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}&page=${randomPage}`);
     if (!res.ok) throw new Error("Erro ao buscar na TMDb");
 
@@ -146,10 +149,7 @@ async function search() {
     let sugestao = await enviarParaOpenAI(prompt);
     let sugestaoNormalized = normalize(sugestao);
 
-    if (!generosValidos.includes(sugestaoNormalized)) {
-      console.warn("⚠️ Gênero não reconhecido, aplicando fallback: Ação");
-      sugestaoNormalized = "ação";
-    }
+    if (!generosValidos.includes(sugestaoNormalized)) sugestaoNormalized = "ação";
 
     if (movieGenresNormalized[sugestaoNormalized]) {
       type = 'movie'; genreId = movieGenresNormalized[sugestaoNormalized];
@@ -173,17 +173,12 @@ async function surprise() {
   await search();
 }
 
-// 🧭 Eventos
-searchButton.addEventListener('click', search);
-searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
-surpriseButton.addEventListener('click', surprise);
-
-// 🖼️ Banner dinâmico com gênero aleatório + botão afiliado
+// 🖼️ Banner dinâmico
+let featuredMovieId = null;
 async function loadFeatured() {
   try {
     const genreIds = Object.values(movieGenres);
     const randomGenreId = genreIds[Math.floor(Math.random() * genreIds.length)];
-
     const randomPage = Math.floor(Math.random() * 10) + 1;
 
     const res = await fetch(`/api/tmdb?type=movie&genreId=${randomGenreId}&page=${randomPage}`);
@@ -194,10 +189,8 @@ async function loadFeatured() {
     function atualizarBanner(index) {
       const movie = movies[index];
       if (!movie) return;
+      featuredMovieId = movie.id;
       featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-      featuredBanner.style.backgroundSize = "cover";
-      featuredBanner.style.backgroundPosition = "center";
-
       document.getElementById("hero-title").textContent = movie.title;
       document.getElementById("hero-description").textContent = movie.overview || "Sem sinopse disponível";
       document.getElementById("hero-watch-btn").href = AFFILIATE_LINK;
@@ -213,7 +206,12 @@ async function loadFeatured() {
   }
 }
 
+heroTrailerBtn.addEventListener('click', () => {
+  if (featuredMovieId) fetchTrailer(featuredMovieId, "movie");
+});
+
 loadFeatured();
+
 // ======== MODAL DO TRAILER ========
 function openTrailer(videoKey) {
   const modal = document.getElementById("trailer-modal");
@@ -230,7 +228,6 @@ function closeTrailer() {
 }
 
 document.getElementById("close-modal").addEventListener("click", closeTrailer);
-
 document.getElementById("trailer-modal").addEventListener("click", (e) => {
   if (e.target.id === "trailer-modal") closeTrailer();
 });
@@ -251,3 +248,8 @@ async function fetchTrailer(id, type) {
     alert("Erro ao carregar trailer.");
   }
 }
+
+// Eventos principais
+searchButton.addEventListener('click', search);
+searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
+surpriseButton.addEventListener('click', surprise);
