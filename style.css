@@ -425,3 +425,108 @@ footer {
   border-top: 1px solid #222;
   margin-top: 40px;
 }
+/* ======== GÊNEROS ======== */
+.generos-section {
+  padding: 20px;
+  background: #111;
+  margin-top: 20px;
+  border-radius: 10px;
+  display: none;               /* 👈 Escondido por padrão */
+}
+
+.generos-section.active {       /* 👈 Mostra ao clicar no menu */
+  display: block;
+}
+
+.generos-section h3 {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+}
+
+.generos-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.generos-container button {
+  background: #222;
+  color: #fff;
+  border: 1px solid #e50914;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.generos-container button:hover {
+  background: #e50914;
+  transform: scale(1.05);
+}
+
+/* ======== SOBRE ======== */
+.sobre-section {
+  display: none;               /* 👈 Escondido por padrão */
+  padding: 25px;
+  text-align: center;
+  background: #111;
+  border-radius: 10px;
+  margin: 30px auto;
+  max-width: 800px;
+}
+
+.sobre-section.active {        /* 👈 Mostra ao clicar no menu */
+  display: block;
+}
+
+.sobre-section h3 {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+
+.sobre-section p {
+  color: #bbb;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+/* ======== HERO (ajuste sinopse no banner) ======== */
+.hero-content {
+  position: relative;
+  text-align: center;
+  padding: 20px;
+  z-index: 2;
+  max-width: 90%;
+  background: rgba(0, 0, 0, 0.6);  /* 👈 Fundo escuro atrás do texto */
+  border-radius: 10px;
+}
+
+/* ======== LOGO (Gorila) ======== */
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #e50914, #ff4c4c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gorilla {
+  display: inline-block;
+  font-size: 1.8rem;
+  animation: correr 2s linear infinite;
+  filter: drop-shadow(0 0 4px #e50914);
+}
+
+@keyframes correr {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(8px) rotate(5deg); }
+  100% { transform: translateX(0); }
+}

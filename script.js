@@ -297,3 +297,44 @@ window.addEventListener('scroll', () => {
 searchButton.addEventListener('click', () => search());
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
+// ============================
+// 📌 MOSTRAR / ESCONDER SEÇÕES
+// ============================
+
+// Seção de Gêneros
+const generosSection = document.querySelector('.generos-section');
+const linkGeneros = document.querySelector('.navbar a[href="#generos"]');
+
+// Seção Sobre
+const sobreSection = document.querySelector('.sobre-section');
+const linkSobre = document.querySelector('.navbar a[href="#sobre"]');
+
+if (linkGeneros && generosSection) {
+  linkGeneros.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Fecha a seção Sobre se estiver aberta
+    if (sobreSection && sobreSection.classList.contains('active')) {
+      sobreSection.classList.remove('active');
+    }
+
+    // Alterna visibilidade da seção de gêneros
+    generosSection.classList.toggle('active');
+    window.scrollTo({ top: generosSection.offsetTop - 60, behavior: 'smooth' });
+  });
+}
+
+if (linkSobre && sobreSection) {
+  linkSobre.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Fecha a seção de Gêneros se estiver aberta
+    if (generosSection && generosSection.classList.contains('active')) {
+      generosSection.classList.remove('active');
+    }
+
+    // Alterna visibilidade da seção Sobre
+    sobreSection.classList.toggle('active');
+    window.scrollTo({ top: sobreSection.offsetTop - 60, behavior: 'smooth' });
+  });
+}
