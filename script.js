@@ -10,7 +10,11 @@ const generosSection   = document.querySelector('.generos-section');
 const sobreSection     = document.querySelector('.sobre-section');
 const generosContainer = document.getElementById('generos-container');
 
-const AFFILIATE_LINK = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
+const heroTitle        = document.getElementById('hero-title');
+const heroDesc         = document.getElementById('hero-description');
+const heroWatchBtn     = document.getElementById('hero-watch-btn');
+
+const AFFILIATE_LINK   = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
 
 // ===== Gêneros TMDb
 const movieGenres = {
@@ -27,7 +31,7 @@ const tvGenres = {
   "Guerra e Política": 10768,"Faroeste": 37
 };
 
-// ===== Utilidades
+// ===== Funções auxiliares
 const normalize = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const movieGenresNorm = Object.fromEntries(Object.entries(movieGenres).map(([k,v])=>[normalize(k),v]));
 const tvGenresNorm    = Object.fromEntries(Object.entries(tvGenres).map(([k,v])=>[normalize(k),v]));
@@ -39,8 +43,29 @@ function renderStars(vote=0){
   return '★'.repeat(full)+'½'.repeat(half)+'☆'.repeat(empty);
 }
 
+// ===== Loading nos resultados
 function showLoading(){
-  resultsContainer.innerHTML = `<div style="padding:24px;text-align:center;opacity:.85">🎬 Carregando recomendações…</div>`;
+  resultsContainer.innerHTML = `
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <span class="loading-text">Carregando recomendações…</span>
+    </div>
+  `;
+}
+
+// ===== Loading no banner
+function showHeroLoading(){
+  featuredBanner.style.backgroundImage = 'none';
+  featuredBanner.innerHTML = `
+    <div class="hero-loading">
+      <div class="spinner"></div>
+      <span class="loading-text">Carregando destaque…</span>
+    </div>
+  `;
+}
+function clearHeroLoading(){
+  const heroLoading = document.querySelector('.hero-loading');
+  if(heroLoading) heroLoading.remove();
 }
 
 // ===== Cards
@@ -54,9 +79,7 @@ function createCard(item,type){
   const el = document.createElement('article');
   el.className = 'card';
   el.innerHTML = `
-    <div class="poster">
-      ${poster ? `<img src="${poster}" alt="${title}">` : ''}
-    </div>
+    <div class="poster">${poster ? `<img src="${poster}" alt="${title}">` : ''}</div>
     <div class="card-info">
       <h3>${title}</h3>
       <p class="type">${type==='movie' ? 'Filme' : 'Série'}</p>
@@ -70,7 +93,6 @@ function createCard(item,type){
     </div>
   `;
 
-  // Expand/contrair sinopse
   const btn = el.querySelector('.toggle-overview');
   const txt = el.querySelector('.overview');
   let expanded = false;
@@ -80,7 +102,6 @@ function createCard(item,type){
     btn.textContent = expanded ? 'Leia menos' : 'Leia mais';
   });
 
-  // Trailer
   el.querySelector('.trailer-btn').addEventListener('click',()=>fetchTrailer(item.id,type,overview));
   return el;
 }
@@ -99,7 +120,7 @@ async function fetchByGenre(type,genreId){
   }
 }
 
-// ===== IA (contexto simples)
+// ===== IA
 let iaContext = "";
 async function askAI(prompt){
   try{
@@ -121,24 +142,28 @@ async function search(text=null){
   if(!input) return;
   showLoading();
 
-  // Delega para a IA interpretar
   const ai = await askAI(input);
   let [genero,tipo] = ai.split('|').map(s=> (s||'').trim().toLowerCase());
   let type = (tipo==='série'||tipo==='serie') ? 'tv' : 'movie';
 
   let genreId = movieGenresNorm[normalize(genero)] || tvGenresNorm[normalize(genero)];
-  if(!genreId){ // fallback
-    type = 'movie';
-    genreId = movieGenres["Ação"];
-  }
+  if(!genreId){ type = 'movie'; genreId = movieGenres["Ação"]; }
 
   const items = await fetchByGenre(type,genreId);
   resultsContainer.innerHTML = "";
   items.forEach(it => resultsContainer.appendChild(createCard(it,type)));
+
+  // fade-in nos resultados
+  resultsContainer.style.opacity = "0";
+  setTimeout(() => {
+    resultsContainer.style.opacity = "1";
+    resultsContainer.style.transition = "opacity 0.4s ease";
+  }, 50);
+
   resultsTitle.textContent = `Resultados (${items.length})`;
 }
 
-// ===== Render lista de gêneros (aparece só quando clicar no menu)
+// ===== Render gêneros
 function renderGeneros(){
   if(!generosContainer) return;
   generosContainer.innerHTML = "";
@@ -154,6 +179,7 @@ function renderGeneros(){
 let featuredMovieId = null;
 async function loadFeatured(){
   try{
+    showHeroLoading();
     const ids = Object.values(movieGenres);
     const gid = ids[Math.floor(Math.random()*ids.length)];
     const pg  = Math.floor(Math.random()*10)+1;
@@ -165,14 +191,17 @@ async function loadFeatured(){
     const first = list[0];
     featuredMovieId = first.id;
     featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${first.backdrop_path})`;
-    document.getElementById('hero-title').textContent = first.title || "Destaque";
-    document.getElementById('hero-description').textContent = first.overview || "Sem sinopse disponível";
-    document.getElementById('hero-watch-btn').href = AFFILIATE_LINK;
-  }catch(e){ console.error('banner',e); }
+    heroTitle.textContent = first.title || "Destaque";
+    heroDesc.textContent = first.overview || "Sem sinopse disponível";
+    heroWatchBtn.href = AFFILIATE_LINK;
+    clearHeroLoading();
+  }catch(e){
+    console.error('banner',e);
+  }
 }
 heroTrailerBtn.addEventListener('click',()=>{ if(featuredMovieId) fetchTrailer(featuredMovieId,'movie'); });
 
-// ===== Trailer (modal)
+// ===== Trailer Modal
 function openTrailer(key){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
@@ -183,7 +212,9 @@ function openTrailer(key){
 function closeTrailer(){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
-  iframe.src = ''; modal.style.display='none'; modal.setAttribute('aria-hidden','true');
+  iframe.src = '';
+  modal.style.display='none';
+  modal.setAttribute('aria-hidden','true');
 }
 document.getElementById('close-modal').addEventListener('click',closeTrailer);
 document.getElementById('trailer-modal').addEventListener('click',e=>{ if(e.target.id==='trailer-modal') closeTrailer(); });
@@ -200,27 +231,25 @@ async function fetchTrailer(id,type,overview){
 }
 function speak(txt){ const u=new SpeechSynthesisUtterance(txt); u.lang='pt-BR'; u.rate=1; speechSynthesis.speak(u); }
 
-// ===== Navegação (mostrar/ocultar seções)
+// ===== Navegação entre seções
 document.querySelectorAll('.navbar a').forEach(a=>{
   a.addEventListener('click',e=>{
     const target = a.dataset.nav;
-    if(!target) return;
-
-    // estilo de ativo
     document.querySelectorAll('.navbar a').forEach(x=>x.classList.remove('active'));
     a.classList.add('active');
+
+    generosSection.classList.remove('active');
+    sobreSection.classList.remove('active');
 
     if(target==='generos'){
       e.preventDefault();
       renderGeneros();
-      generosSection.classList.toggle('active');
-      sobreSection.classList.remove('active');
-      window.scrollTo({top:generosSection.offsetTop-70,behavior:'smooth'});
+      generosSection.classList.add('active');
+      window.scrollTo({top:generosSection.offsetTop-60,behavior:'smooth'});
     }else if(target==='sobre'){
       e.preventDefault();
-      sobreSection.classList.toggle('active');
-      generosSection.classList.remove('active');
-      window.scrollTo({top:sobreSection.offsetTop-70,behavior:'smooth'});
+      sobreSection.classList.add('active');
+      window.scrollTo({top:sobreSection.offsetTop-60,behavior:'smooth'});
     }
   });
 });
@@ -236,5 +265,5 @@ surpriseButton.addEventListener('click',()=>{
 
 // ===== Boot
 loadFeatured();
-renderGeneros(); // prepara, mas seção continua oculta
+renderGeneros();
 resultsTitle.textContent = 'Top do momento';
