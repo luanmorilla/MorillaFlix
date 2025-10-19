@@ -1,4 +1,4 @@
-// 📌 Seletores
+// 📌 Seletores principais
 const featuredBanner = document.querySelector('.hero');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
@@ -24,7 +24,7 @@ const tvGenres = {
   "Faroeste": 37
 };
 
-// 🧠 Normaliza strings
+// 🧠 Normalização de strings para busca
 function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -37,7 +37,7 @@ for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
 const generosValidos = Object.keys(movieGenresNormalized).concat(Object.keys(tvGenresNormalized));
 
-// ⭐ Renderiza estrelas
+// ⭐ Renderiza estrelas de avaliação
 function renderStars(vote) {
   const full = Math.floor(vote / 2);
   const half = vote % 2 >= 1 ? 1 : 0;
@@ -70,7 +70,7 @@ function createCard(item, type) {
     </div>
   `;
 
-  // botão de ler mais
+  // Alternar sinopse longa
   const toggleBtn = card.querySelector('.toggle-overview');
   const overviewP = card.querySelector('.overview');
   overviewP.style.maxHeight = "80px";
@@ -85,7 +85,7 @@ function createCard(item, type) {
     }
   });
 
-  // botão de trailer
+  // Trailer nos cards
   const trailerBtn = card.querySelector('.trailer-btn');
   trailerBtn.addEventListener('click', () => fetchTrailer(item.id, type));
 
@@ -111,7 +111,7 @@ async function fetchByGenre(type, genreId) {
   }
 }
 
-// 🤖 Chamada OpenAI
+// 🤖 Chamada OpenAI (para sugestões de gênero se necessário)
 async function enviarParaOpenAI(prompt) {
   try {
     const res = await fetch('/api/openai', {
@@ -173,7 +173,7 @@ async function surprise() {
   await search();
 }
 
-// 🖼️ Banner dinâmico
+// 🖼️ Banner dinâmico + trailer
 let featuredMovieId = null;
 async function loadFeatured() {
   try {

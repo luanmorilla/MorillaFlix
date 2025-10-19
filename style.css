@@ -308,3 +308,36 @@ footer {
   50% { transform: translateX(10px) rotate(10deg); }
   100% { transform: translateX(0); }
 }
+/* ======== EXPLICAÇÃO DA IA ======== */
+.ai-explanation {
+  text-align: center;
+  margin: 10px 20px;
+  padding: 10px;
+  background: #111;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #ddd;
+  display: none;
+}
+
+/* ======== FAVORITOS ======== */
+.favorites-section {
+  padding: 20px;
+}
+
+.favorite-btn {
+  background: transparent;
+  border: none;
+  color: #e50914;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+}
+
+.favorite-btn.active {
+  color: gold;
+}

@@ -10,10 +10,11 @@
 <body>
 
   <!-- HEADER -->
-  <h1 class="logo">
-    <span class="gorilla">🦍</span> MorillaFlix
-  </h1>
-  
+  <header>
+    <h1 class="logo">
+      <span class="gorilla">🦍</span> MorillaFlix
+    </h1>
+  </header>
 
   <!-- BANNER -->
   <section class="hero">
@@ -27,7 +28,7 @@
 
   <!-- PESQUISA -->
   <section class="search-section">
-    <input type="text" id="search-input" placeholder="Digite o gênero (Ação, Comédia...)">
+    <input type="text" id="search-input" placeholder="Digite um ou mais gêneros (ex: Ação, Comédia)">
     <div class="buttons">
       <button id="search-button" class="btn-primary">Buscar</button>
       <button id="surprise-button" class="btn-secondary">Surpreenda-me</button>
@@ -38,6 +39,17 @@
   <section class="results-section">
     <h3>Resultados</h3>
     <div id="results" class="results-carousel"></div>
+  </section>
+
+  <!-- EXPLICAÇÃO DA IA -->
+  <section class="explanation-section">
+    <p id="ai-explanation" class="ai-explanation"></p>
+  </section>
+
+  <!-- FAVORITOS -->
+  <section class="favorites-section">
+    <h3>❤️ Meus Favoritos</h3>
+    <div id="favorites" class="results-carousel"></div>
   </section>
 
   <!-- MODAL DO TRAILER -->
@@ -55,5 +67,3 @@
 
 </body>
 </html>
-<p>© 2025 MorillaFlix. Todos os direitos reservados.</p>
-
