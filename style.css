@@ -462,3 +462,42 @@ html {
   opacity: 1;
   transform: translateY(0);
 }
+/* ======== UTILIDADES & ACESSIBILIDADE (safe to append) ======== */
+
+/* Elementos apenas para leitores de tela */
+.sr-only,
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Melhor foco para teclado */
+:focus-visible {
+  outline: 3px solid #e50914;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Respeita usuários com redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Animação utilitária opcional (pode usar adicionando .fade-in a qualquer elemento) */
+.fade-in {
+  animation: mfFadeIn 300ms ease-out both;
+}
+@keyframes mfFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- keep: git-commit anchor --- */
