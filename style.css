@@ -34,6 +34,17 @@ header {
   -webkit-text-fill-color: transparent;
 }
 
+.gorilla {
+  display: inline-block;
+  animation: correr 2s linear infinite;
+}
+
+@keyframes correr {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(10px) rotate(10deg); }
+  100% { transform: translateX(0); }
+}
+
 /* ======== BANNER ======== */
 .hero {
   position: relative;
@@ -81,7 +92,7 @@ header {
   line-height: 1.4;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* Limita a 3 linhas */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
 }
@@ -150,6 +161,52 @@ header {
   color: #fff;
 }
 .btn-secondary:hover { background-color: #444; }
+/* ======== MOOD SECTION ======== */
+.mood-section {
+  text-align: center;
+  padding: 20px;
+  background: #111;
+  margin: 15px 0;
+  border-radius: 10px;
+}
+
+.mood-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.mood-section p {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.mood-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mood-buttons button {
+  background: #222;
+  color: #fff;
+  border: 1px solid #e50914;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.mood-buttons button:hover {
+  background: #e50914;
+  transform: scale(1.05);
+}
+
+.mood-buttons button:active {
+  transform: scale(0.95);
+}
 
 /* ======== RESULTADOS ======== */
 .results-section {
@@ -186,6 +243,10 @@ header {
 .card-info {
   padding: 8px;
   font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 
 .card-info h4 {
@@ -208,17 +269,52 @@ header {
   font-weight: bold;
   display: block;
   border-top: 1px solid #333;
+  border-radius: 25px;
+  margin-top: 5px;
 }
 
-/* ======== FOOTER ======== */
-footer {
+/* ======== BOTÃO DE TRAILER ======== */
+.trailer-btn {
+  width: 100%;
+  background: linear-gradient(90deg, #e50914, #ff4c4c);
+  color: #fff;
   text-align: center;
-  padding: 15px;
-  font-size: 0.8rem;
-  color: #777;
-  border-top: 1px solid #222;
-  margin-top: 20px;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px;
+  margin-top: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
+
+/* Ícone de play animado */
+.trailer-btn::before {
+  content: "▶";
+  font-size: 1rem;
+  margin-right: 8px;
+  display: inline-block;
+  animation: pulsar 1.5s infinite ease-in-out;
+}
+
+@keyframes pulsar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.trailer-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
+  background: linear-gradient(90deg, #ff4c4c, #e50914);
+}
+
+.trailer-btn:active {
+  transform: scale(0.96);
+}
+
 /* ======== MODAL DO TRAILER ======== */
 .trailer-modal {
   display: none;
@@ -270,105 +366,99 @@ footer {
   }
 }
 
-/* Animação de suavidade */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
-/* ======== BOTÃO DE TRAILER ======== */
-.trailer-btn {
-  background: linear-gradient(90deg, #e50914, #ff4c4c);
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+}
+/* ======== ANIMAÇÃO DE ENTRADA NOS CARDS ======== */
+.card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ======== BLUR DO BANNER ======== */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* ======== BRILHO DOS BOTÕES ======== */
+.trailer-btn,
+.watch-now,
+.btn-primary {
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.4);
+  animation: brilho 2s infinite alternate;
+}
+
+@keyframes brilho {
+  from { box-shadow: 0 0 10px rgba(229, 9, 20, 0.4); }
+  to { box-shadow: 0 0 20px rgba(229, 9, 20, 0.8); }
+}
+
+/* ======== NAVBAR ======== */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar a {
+  text-decoration: none;
   color: #fff;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  font-weight: 500;
+  transition: color 0.3s;
 }
 
-.trailer-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
-}
-
-.trailer-btn:active {
-  transform: scale(0.96);
-}
-/* ======== ANIMAÇÃO DO GORILA ======== */
-.gorilla {
-  display: inline-block;
-  animation: correr 2s linear infinite;
-}
-
-@keyframes correr {
-  0% { transform: translateX(0); }
-  50% { transform: translateX(10px) rotate(10deg); }
-  100% { transform: translateX(0); }
-}
-/* ======== EXPLICAÇÃO DA IA ======== */
-.ai-explanation {
-  text-align: center;
-  margin: 10px 20px;
-  padding: 10px;
-  background: #111;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: #ddd;
-  display: none;
-}
-
-/* ======== FAVORITOS ======== */
-.favorites-section {
-  padding: 20px;
-}
-
-.favorite-btn {
-  background: transparent;
-  border: none;
+.navbar a:hover {
   color: #e50914;
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: transform 0.2s;
 }
 
-.favorite-btn:hover {
-  transform: scale(1.2);
+/* ======== SCROLL SUAVE ======== */
+html {
+  scroll-behavior: smooth;
 }
 
-.favorite-btn.active {
-  color: gold;
-}
-/* ======== BOTÃO DE TRAILER ======== */
-.trailer-btn {
-  width: 100%;
-  background: transparent;
-  border: 2px solid #e50914;
-  color: #e50914;
-  text-align: center;
-  padding: 8px 0;
-  font-size: 0.85rem;
-  font-weight: bold;
-  border-radius: 5px;
-  margin-top: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.trailer-btn:hover {
+/* ======== NOTIFICAÇÕES ======== */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   background: #e50914;
   color: #fff;
-  transform: scale(1.02);
+  padding: 15px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 9999;
 }
 
-.trailer-btn:active {
-  transform: scale(0.98);
-}
-.card-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
 }

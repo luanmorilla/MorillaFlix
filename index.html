@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MorillaFlix</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <script src="script.js" defer></script>
 </head>
 <body>
 
-  <!-- HEADER -->
+  <!-- ===========================
+       CABEÇALHO / NAVBAR
+  ============================ -->
   <header>
     <h1 class="logo">
       <span class="gorilla">🦍</span> MorillaFlix
     </h1>
+    <nav class="navbar">
+      <ul>
+        <li><a href="#inicio">Início</a></li>
+        <li><a href="#generos">Gêneros</a></li>
+        <li><a href="#favoritos">Favoritos</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+      </ul>
+    </nav>
   </header>
 
-  <!-- BANNER -->
-  <section class="hero">
+  <!-- ===========================
+       BANNER DESTAQUE
+  ============================ -->
+  <section id="inicio" class="hero">
     <div class="hero-content">
       <h2 id="hero-title">Carregando...</h2>
       <p id="hero-description">Descubra os melhores filmes aqui</p>
@@ -26,33 +38,51 @@
     </div>
   </section>
 
-  <!-- PESQUISA -->
-  <section class="search-section">
-    <input type="text" id="search-input" placeholder="Digite um ou mais gêneros (ex: Ação, Comédia)">
+  <!-- ===========================
+       MODO IA CURADOR (HUMOR)
+  ============================ -->
+  <section class="mood-section">
+    <h3>🎯 Receba sugestões pelo seu humor</h3>
+    <p>Clique no seu estado de espírito e receba recomendações automáticas 🎬</p>
+    <div class="mood-buttons">
+      <button data-mood="animado">😎 Animado</button>
+      <button data-mood="triste">😢 Triste</button>
+      <button data-mood="assustado">😱 Assustado</button>
+      <button data-mood="romantico">😍 Romântico</button>
+      <button data-mood="entediado">🥱 Entediado</button>
+    </div>
+  </section>
+
+  <!-- ===========================
+       CAMPO DE PESQUISA
+  ============================ -->
+  <section id="generos" class="search-section">
+    <input type="text" id="search-input" placeholder="Digite o gênero (Ação, Comédia...)" />
     <div class="buttons">
       <button id="search-button" class="btn-primary">Buscar</button>
       <button id="surprise-button" class="btn-secondary">Surpreenda-me</button>
     </div>
   </section>
 
-  <!-- RESULTADOS -->
+  <!-- ===========================
+       TOP FILMES DO MOMENTO
+  ============================ -->
+  <section class="top-section">
+    <h3>🔥 Top Filmes do Momento</h3>
+    <div id="top-results" class="results-carousel"></div>
+  </section>
+
+  <!-- ===========================
+       RESULTADOS DE BUSCA
+  ============================ -->
   <section class="results-section">
     <h3>Resultados</h3>
     <div id="results" class="results-carousel"></div>
   </section>
 
-  <!-- EXPLICAÇÃO DA IA -->
-  <section class="explanation-section">
-    <p id="ai-explanation" class="ai-explanation"></p>
-  </section>
-
-  <!-- FAVORITOS -->
-  <section class="favorites-section">
-    <h3>❤️ Meus Favoritos</h3>
-    <div id="favorites" class="results-carousel"></div>
-  </section>
-
-  <!-- MODAL DO TRAILER -->
+  <!-- ===========================
+       MODAL DO TRAILER
+  ============================ -->
   <div id="trailer-modal" class="trailer-modal">
     <div class="trailer-content">
       <span id="close-modal" class="close-btn">&times;</span>
@@ -60,7 +90,14 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- ===========================
+       NOTIFICAÇÕES PERSONALIZADAS
+  ============================ -->
+  <div id="notification" class="notification"></div>
+
+  <!-- ===========================
+       RODAPÉ
+  ============================ -->
   <footer>
     <p>© 2025 MorillaFlix. Todos os direitos reservados.</p>
   </footer>

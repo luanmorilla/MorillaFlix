@@ -24,7 +24,7 @@ const tvGenres = {
   "Faroeste": 37
 };
 
-// 🧠 Normalização de strings para busca
+// 🧠 Normalização
 function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -37,7 +37,7 @@ for (const key in tvGenres) tvGenresNormalized[normalize(key)] = tvGenres[key];
 
 const generosValidos = Object.keys(movieGenresNormalized).concat(Object.keys(tvGenresNormalized));
 
-// ⭐ Renderiza estrelas de avaliação
+// ⭐ Avaliação
 function renderStars(vote) {
   const full = Math.floor(vote / 2);
   const half = vote % 2 >= 1 ? 1 : 0;
@@ -45,7 +45,16 @@ function renderStars(vote) {
   return '★'.repeat(full) + '½'.repeat(half) + '☆'.repeat(empty);
 }
 
-// 🃏 Cria card com botão de trailer
+// 🕐 LOADING
+function showLoading() {
+  resultsContainer.innerHTML = `<div class="loading">🎬 Carregando recomendações...</div>`;
+}
+function hideLoading() {
+  const loader = resultsContainer.querySelector('.loading');
+  if (loader) loader.remove();
+}
+
+// 🃏 Cards de filme
 function createCard(item, type) {
   const card = document.createElement('div');
   card.classList.add('card');
@@ -70,7 +79,6 @@ function createCard(item, type) {
     </div>
   `;
 
-  // Alternar sinopse longa
   const toggleBtn = card.querySelector('.toggle-overview');
   const overviewP = card.querySelector('.overview');
   overviewP.style.maxHeight = "80px";
@@ -85,14 +93,13 @@ function createCard(item, type) {
     }
   });
 
-  // Trailer nos cards
   const trailerBtn = card.querySelector('.trailer-btn');
-  trailerBtn.addEventListener('click', () => fetchTrailer(item.id, type));
+  trailerBtn.addEventListener('click', () => fetchTrailer(item.id, type, overview));
 
   return card;
 }
 
-// 📡 Busca TMDb com página aleatória
+// 📡 Busca TMDb
 async function fetchByGenre(type, genreId) {
   try {
     if (!type || !genreId) {
@@ -111,7 +118,7 @@ async function fetchByGenre(type, genreId) {
   }
 }
 
-// 🤖 Chamada OpenAI (para sugestões de gênero se necessário)
+// 🧠 IA - Sugestão de gênero
 async function enviarParaOpenAI(prompt) {
   try {
     const res = await fetch('/api/openai', {
@@ -128,11 +135,12 @@ async function enviarParaOpenAI(prompt) {
   }
 }
 
-// 🔍 Busca principal
+// 🔍 Busca normal
 async function search() {
   const inputOriginal = searchInput.value.trim();
   if (!inputOriginal) return alert("Digite um gênero ou termo!");
 
+  showLoading();
   const input = normalize(inputOriginal);
   let type, genreId;
 
@@ -148,7 +156,6 @@ async function search() {
     `;
     let sugestao = await enviarParaOpenAI(prompt);
     let sugestaoNormalized = normalize(sugestao);
-
     if (!generosValidos.includes(sugestaoNormalized)) sugestaoNormalized = "ação";
 
     if (movieGenresNormalized[sugestaoNormalized]) {
@@ -158,11 +165,9 @@ async function search() {
     }
   }
 
-  resultsContainer.innerHTML = '';
   const results = await fetchByGenre(type, genreId);
+  resultsContainer.innerHTML = '';
   results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
-
-  resultsContainer.scrollLeft = 0;
 }
 
 // 🎲 Surpreenda-me
@@ -173,7 +178,7 @@ async function surprise() {
   await search();
 }
 
-// 🖼️ Banner dinâmico + trailer
+// 🖼️ Banner dinâmico
 let featuredMovieId = null;
 async function loadFeatured() {
   try {
@@ -232,8 +237,8 @@ document.getElementById("trailer-modal").addEventListener("click", (e) => {
   if (e.target.id === "trailer-modal") closeTrailer();
 });
 
-// ======== FETCH TRAILER ========
-async function fetchTrailer(id, type) {
+// ======== FETCH TRAILER + NARRAÇÃO ========
+async function fetchTrailer(id, type, overviewText) {
   try {
     const res = await fetch(`/api/tmdb/trailer?id=${id}&type=${type}`);
     const data = await res.json();
@@ -241,15 +246,75 @@ async function fetchTrailer(id, type) {
     if (data.key) {
       openTrailer(data.key);
     } else {
-      alert("Trailer não disponível 😔");
+      speakText(overviewText || "Sinopse não disponível.");
     }
   } catch (err) {
     console.error("❌ Erro ao buscar trailer:", err);
-    alert("Erro ao carregar trailer.");
+    speakText(overviewText || "Não foi possível carregar o trailer.");
   }
 }
+
+// 🗣️ Narração com voz do navegador
+function speakText(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "pt-BR";
+  utter.rate = 1;
+  speechSynthesis.speak(utter);
+}
+
+// ======== IA CURADOR ========
+const moodButtons = document.querySelectorAll('.mood-buttons button');
+
+const moodPrompts = {
+  animado: "Usuário está animado, recomende filmes de ação, aventura ou comédia.",
+  triste: "Usuário está triste, recomende filmes de comédia leve ou animações.",
+  assustado: "Usuário quer sustos, recomende filmes de terror e suspense.",
+  romantico: "Usuário está romântico, recomende filmes de romance.",
+  entediado: "Usuário está entediado, recomende filmes populares e diferentes."
+};
+
+moodButtons.forEach(button => {
+  button.addEventListener('click', async () => {
+    showLoading();
+    const mood = button.dataset.mood;
+    const prompt = moodPrompts[mood];
+
+    const genreSuggestion = await enviarParaOpenAI(`
+      Você é um assistente de recomendação de filmes.
+      Com base no humor "${mood}", sugira APENAS UM gênero exato da lista:
+      ${Object.keys(movieGenres).join(", ")}, ${Object.keys(tvGenres).join(", ")}.
+    `);
+
+    const normalizedGenre = normalize(genreSuggestion);
+    let type, genreId;
+
+    if (movieGenresNormalized[normalizedGenre]) {
+      type = 'movie';
+      genreId = movieGenresNormalized[normalizedGenre];
+    } else if (tvGenresNormalized[normalizedGenre]) {
+      type = 'tv';
+      genreId = tvGenresNormalized[normalizedGenre];
+    } else {
+      type = 'movie';
+      genreId = movieGenres["Ação"];
+    }
+
+    const results = await fetchByGenre(type, genreId);
+    resultsContainer.innerHTML = '';
+    results.forEach(item => resultsContainer.appendChild(createCard(item, type)));
+  });
+});
 
 // Eventos principais
 searchButton.addEventListener('click', search);
 searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') search(); });
 surpriseButton.addEventListener('click', surprise);
+// 🛎️ Notificações amigáveis
+function showNotification(message) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.classList.add('show');
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 4000);
+}
