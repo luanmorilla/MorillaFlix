@@ -85,7 +85,7 @@ function createCard(item, type) {
   return card;
 }
 
-// 📡 Busca TMDb
+// 📡 Busca TMDb com página aleatória
 async function fetchByGenre(type, genreId) {
   try {
     if (!type || !genreId) {
@@ -94,7 +94,10 @@ async function fetchByGenre(type, genreId) {
       genreId = movieGenres["Ação"];
     }
 
-    const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}`);
+    // 👉 Página aleatória entre 1 e 10 (para variar os resultados)
+    const randomPage = Math.floor(Math.random() * 10) + 1;
+
+    const res = await fetch(`/api/tmdb?type=${type}&genreId=${genreId}&page=${randomPage}`);
     if (!res.ok) throw new Error("Erro ao buscar na TMDb");
 
     const data = await res.json();
@@ -181,7 +184,9 @@ async function loadFeatured() {
     const genreIds = Object.values(movieGenres);
     const randomGenreId = genreIds[Math.floor(Math.random() * genreIds.length)];
 
-    const res = await fetch(`/api/tmdb?type=movie&genreId=${randomGenreId}`);
+    const randomPage = Math.floor(Math.random() * 10) + 1;
+
+    const res = await fetch(`/api/tmdb?type=movie&genreId=${randomGenreId}&page=${randomPage}`);
     const data = await res.json();
     const movies = data.results?.slice(0, 5) || [];
     let current = 0;
