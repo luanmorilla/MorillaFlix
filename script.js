@@ -318,3 +318,29 @@ function showNotification(message) {
     notification.classList.remove('show');
   }, 4000);
 }
+// Rolagem suave para seções da navbar
+document.querySelectorAll('.navbar a').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const targetId = link.getAttribute('href').replace('#', '');
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) {
+      window.scrollTo({
+        top: targetSection.offsetTop - 60, // 👈 compensa o header fixo
+        behavior: 'smooth'
+      });
+    }
+  });
+});
+// Destacar botão ativo
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('section[id]');
+  let scrollY = window.scrollY + 70; // compensar header fixo
+  sections.forEach(sec => {
+    const link = document.querySelector(`.navbar a[href="#${sec.id}"]`);
+    if (scrollY >= sec.offsetTop && scrollY < sec.offsetTop + sec.offsetHeight) {
+      document.querySelectorAll('.navbar a').forEach(a => a.classList.remove('active'));
+      if (link) link.classList.add('active');
+    }
+  });
+});

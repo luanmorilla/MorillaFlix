@@ -10,6 +10,7 @@ body {
   background-color: #000;
   color: #fff;
   font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
 }
 
 /* ======== HEADER ======== */
@@ -17,72 +18,128 @@ header {
   position: fixed;
   top: 0;
   width: 100%;
-  padding: 15px;
+  padding: 10px 20px;
   background-color: rgba(0, 0, 0, 0.9);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   z-index: 999;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.6);
 }
 
 .logo {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.8rem;
+  font-size: 2rem;
   letter-spacing: 2px;
   background: linear-gradient(90deg, #e50914, #ff4c4c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
+/* 🦍 Gorila animado */
 .gorilla {
   display: inline-block;
+  font-size: 1.8rem;
   animation: correr 2s linear infinite;
 }
 
 @keyframes correr {
   0% { transform: translateX(0); }
-  50% { transform: translateX(10px) rotate(10deg); }
+  50% { transform: translateX(8px) rotate(5deg); }
   100% { transform: translateX(0); }
+}
+
+/* ======== NAVBAR ======== */
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.3s;
+}
+
+.navbar a:hover {
+  color: #e50914;
+}
+
+.navbar a.active {
+  border-bottom: 2px solid #e50914;
+  padding-bottom: 3px;
+}
+
+/* --- Menu responsivo (mobile) --- */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .logo {
+    font-size: 1.6rem;
+  }
+
+  .gorilla {
+    font-size: 1.5rem;
+  }
+
+  .navbar ul {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navbar a {
+    font-size: 0.95rem;
+  }
 }
 
 /* ======== BANNER ======== */
 .hero {
   position: relative;
-  height: 280px;
+  height: 320px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin-top: 60px;
+  margin-top: 70px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  overflow: hidden;
 }
 
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 15%, rgba(0,0,0,0.2) 90%);
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
 }
 
 .hero-content {
   position: relative;
   text-align: center;
-  padding: 15px;
+  padding: 20px;
   z-index: 2;
-  max-width: 95%;
+  max-width: 90%;
+  animation: fadeIn 0.6s ease-in-out;
 }
 
 .hero-content h2 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 800;
   text-transform: uppercase;
   line-height: 1.2;
   margin-bottom: 8px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .hero-content p {
@@ -90,84 +147,35 @@ header {
   color: #ddd;
   margin-bottom: 12px;
   line-height: 1.4;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  text-overflow: ellipsis;
 }
 
-.hero-content a {
+.hero-content a, .hero-content button {
   display: inline-block;
   background: #e50914;
   color: #fff;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  border-radius: 4px;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.hero-content a:hover {
-  background: #b0060e;
-}
-
-/* ======== PESQUISA ======== */
-.search-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  gap: 12px;
-}
-
-.search-section input {
-  width: 90%;
-  padding: 10px 15px;
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
-.buttons {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  justify-content: center;
-}
-
-.btn-primary,
-.btn-secondary {
-  flex: 1;
-  max-width: 140px;
-  padding: 10px;
+  padding: 10px 22px;
   font-size: 0.95rem;
-  border-radius: 5px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s;
+  border: none;
   cursor: pointer;
+  margin: 5px;
 }
 
-.btn-primary {
-  background-color: #e50914;
-  border: none;
-  color: #fff;
+.hero-content a:hover, .hero-content button:hover {
+  background: #ff1f1f;
+  transform: scale(1.05);
 }
-.btn-primary:hover { background-color: #b0060e; }
 
-.btn-secondary {
-  background-color: #222;
-  border: none;
-  color: #fff;
-}
-.btn-secondary:hover { background-color: #444; }
-/* ======== MOOD SECTION ======== */
+/* ======== SEÇÃO DE HUMOR ======== */
 .mood-section {
   text-align: center;
   padding: 20px;
   background: #111;
-  margin: 15px 0;
-  border-radius: 10px;
+  margin: 20px auto;
+  border-radius: 12px;
+  max-width: 95%;
 }
 
 .mood-section h3 {
@@ -192,7 +200,7 @@ header {
   background: #222;
   color: #fff;
   border: 1px solid #e50914;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.95rem;
@@ -204,115 +212,59 @@ header {
   transform: scale(1.05);
 }
 
-.mood-buttons button:active {
-  transform: scale(0.95);
-}
-
 /* ======== RESULTADOS ======== */
 .results-section {
   padding: 20px;
 }
 
-.results-section h3 {
-  font-size: 1.3rem;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
 .results-carousel {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
 }
 
 .card {
   background: #111;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  position: relative;
+  animation: fadeUp 0.6s ease forwards;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.03);
 }
 
 .card img {
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
 }
 
 .card-info {
-  padding: 8px;
-  font-size: 0.85rem;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
 }
 
-.card-info h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.card-info p {
-  font-size: 0.75rem;
-  color: #aaa;
-}
-
-.watch-now {
-  background: #e50914;
-  color: #fff;
-  text-align: center;
-  padding: 8px 0;
-  font-size: 0.85rem;
-  font-weight: bold;
-  display: block;
-  border-top: 1px solid #333;
-  border-radius: 25px;
-  margin-top: 5px;
-}
-
-/* ======== BOTÃO DE TRAILER ======== */
-.trailer-btn {
-  width: 100%;
+.watch-now, .trailer-btn {
   background: linear-gradient(90deg, #e50914, #ff4c4c);
   color: #fff;
   text-align: center;
   padding: 10px 0;
-  font-size: 0.9rem;
   font-weight: bold;
   border: none;
   border-radius: 25px;
-  margin-top: 8px;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-/* Ícone de play animado */
-.trailer-btn::before {
-  content: "▶";
-  font-size: 1rem;
-  margin-right: 8px;
-  display: inline-block;
-  animation: pulsar 1.5s infinite ease-in-out;
-}
-
-@keyframes pulsar {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.8; }
-}
-
-.trailer-btn:hover {
+.trailer-btn:hover, .watch-now:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
-  background: linear-gradient(90deg, #ff4c4c, #e50914);
-}
-
-.trailer-btn:active {
-  transform: scale(0.96);
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
 }
 
 /* ======== MODAL DO TRAILER ======== */
@@ -352,152 +304,29 @@ header {
   font-size: 2rem;
   color: #fff;
   cursor: pointer;
-  z-index: 10;
-  transition: transform 0.2s;
 }
 
 .close-btn:hover {
   transform: scale(1.2);
 }
 
-@media (max-width: 768px) {
-  .trailer-content iframe {
-    height: 250px;
-  }
-}
-
+/* ======== ANIMAÇÕES ======== */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
-}
-/* ======== ANIMAÇÃO DE ENTRADA NOS CARDS ======== */
-.card {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeUp 0.6s ease forwards;
-}
 
 @keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ======== BLUR DO BANNER ======== */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+/* ======== FOOTER ======== */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+  color: #aaa;
+  border-top: 1px solid #222;
+  margin-top: 40px;
 }
-
-/* ======== BRILHO DOS BOTÕES ======== */
-.trailer-btn,
-.watch-now,
-.btn-primary {
-  box-shadow: 0 0 10px rgba(229, 9, 20, 0.4);
-  animation: brilho 2s infinite alternate;
-}
-
-@keyframes brilho {
-  from { box-shadow: 0 0 10px rgba(229, 9, 20, 0.4); }
-  to { box-shadow: 0 0 20px rgba(229, 9, 20, 0.8); }
-}
-
-/* ======== NAVBAR ======== */
-.navbar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 25px;
-}
-
-.navbar ul {
-  list-style: none;
-  display: flex;
-  gap: 20px;
-}
-
-.navbar a {
-  text-decoration: none;
-  color: #fff;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.navbar a:hover {
-  color: #e50914;
-}
-
-/* ======== SCROLL SUAVE ======== */
-html {
-  scroll-behavior: smooth;
-}
-
-/* ======== NOTIFICAÇÕES ======== */
-.notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #e50914;
-  color: #fff;
-  padding: 15px 20px;
-  border-radius: 8px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.3s, transform 0.3s;
-  z-index: 9999;
-}
-
-.notification.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* ======== UTILIDADES & ACESSIBILIDADE (safe to append) ======== */
-
-/* Elementos apenas para leitores de tela */
-.sr-only,
-.visually-hidden {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0, 0, 0, 0);
-  white-space: nowrap; border: 0;
-}
-
-/* Melhor foco para teclado */
-:focus-visible {
-  outline: 3px solid #e50914;
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-/* Respeita usuários com redução de movimento */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Animação utilitária opcional (pode usar adicionando .fade-in a qualquer elemento) */
-.fade-in {
-  animation: mfFadeIn 300ms ease-out both;
-}
-@keyframes mfFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* --- keep: git-commit anchor --- */
