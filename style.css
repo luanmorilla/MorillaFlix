@@ -275,3 +275,36 @@ footer {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
+/* ======== BOTÃO DE TRAILER ======== */
+.trailer-btn {
+  background: linear-gradient(90deg, #e50914, #ff4c4c);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.trailer-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
+}
+
+.trailer-btn:active {
+  transform: scale(0.96);
+}
+/* ======== ANIMAÇÃO DO GORILA ======== */
+.gorilla {
+  display: inline-block;
+  animation: correr 2s linear infinite;
+}
+
+@keyframes correr {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(10px) rotate(10deg); }
+  100% { transform: translateX(0); }
+}
