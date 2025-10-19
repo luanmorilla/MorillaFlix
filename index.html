@@ -5,36 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MorillaFlix</title>
   <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
 </head>
 <body>
 
   <!-- ===== HEADER ===== -->
   <header>
-    <h1 class="logo"><span class="gorilla">🦍</span> MORILLALFLIX</h1>
-    <nav class="navbar">
+    <h1 class="logo" aria-label="MorillaFlix">
+      <span class="gorilla" aria-hidden="true">🦍</span>
+      <span class="logo-text">MORILLALFLIX</span>
+    </h1>
+
+    <nav class="navbar" aria-label="Navegação principal">
       <ul>
-        <li><a href="#inicio" class="active">Início</a></li>
-        <li><a href="#generos">Gêneros</a></li>
-        <li><a href="#favoritos">Favoritos</a></li>
-        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#inicio" data-nav="inicio" class="active">Início</a></li>
+        <li><a href="#generos" data-nav="generos">Gêneros</a></li>
+        <li><a href="#favoritos" data-nav="favoritos">Favoritos</a></li>
+        <li><a href="#sobre" data-nav="sobre">Sobre</a></li>
       </ul>
     </nav>
   </header>
 
   <!-- ===== HERO ===== -->
-  <section class="hero" id="inicio">
+  <section class="hero" id="inicio" aria-label="Destaque">
     <div class="hero-content">
-      <h2 id="hero-title">Bem-vindo ao MorillaFlix</h2>
-      <p id="hero-description">Deixe a inteligência artificial sugerir o filme perfeito pra você 🎥</p>
-      <a id="hero-watch-btn" href="#" target="_blank">🎬 Assistir agora</a>
-      <button id="hero-trailer-btn">🎥 Ver Trailer</button>
+      <h2 id="hero-title">Carregando…</h2>
+      <p id="hero-description">Deixe a IA te recomendar o filme perfeito 🎬</p>
+      <div class="hero-actions">
+        <a id="hero-watch-btn" class="btn btn-primary" href="#" target="_blank" rel="noopener">🎬 Assistir agora</a>
+        <button id="hero-trailer-btn" class="btn btn-outline">🎥 Ver Trailer</button>
+      </div>
     </div>
   </section>
 
   <!-- ===== HUMOR ===== -->
-  <section class="mood-section">
+  <section class="mood-section" aria-label="Sugestões por humor">
     <h3>🎯 Receba sugestões pelo seu humor</h3>
-    <p>Clique no seu estado de espírito e receba recomendações automáticas 🎬</p>
+    <p>Clique no seu estado de espírito e receba recomendações automáticas</p>
     <div class="mood-buttons">
       <button data-mood="animado">😎 Animado</button>
       <button data-mood="triste">😢 Triste</button>
@@ -45,46 +52,43 @@
   </section>
 
   <!-- ===== PESQUISA ===== -->
-  <section class="search-section">
-    <input id="search-input" type="text" placeholder="Digite o gênero (Ação, Comédia...)" />
+  <section class="search-section" aria-label="Pesquisar por gênero">
+    <input id="search-input" type="text" placeholder="Digite o gênero (Ação, Comédia…)" />
     <div class="buttons">
-      <button id="search-button" class="btn-primary">Buscar</button>
-      <button id="surprise-button" class="btn-secondary">Surpreenda-me</button>
+      <button id="search-button" class="btn btn-primary">Buscar</button>
+      <button id="surprise-button" class="btn btn-secondary">Surpreenda-me</button>
     </div>
   </section>
 
-  <!-- ===== GÊNEROS ===== -->
-  <section id="generos" class="generos-section">
+  <!-- ===== GÊNEROS (ESCONDIDO) ===== -->
+  <section id="generos" class="generos-section" aria-label="Lista de gêneros">
     <h3>🎭 Todos os Gêneros</h3>
     <div id="generos-container" class="generos-container"></div>
   </section>
 
   <!-- ===== RESULTADOS ===== -->
-  <section class="results-section">
-    <h3>🔥 Top Filmes do Momento</h3>
-    <div id="results" class="results-carousel"></div>
+  <section class="results-section" aria-label="Resultados">
+    <h3>Resultados</h3>
+    <div id="results" class="results-grid"></div>
   </section>
 
-  <!-- ===== SOBRE ===== -->
-  <section id="sobre" class="sobre-section">
-    <h3>📽️ Sobre o MorillaFlix</h3>
-    <p>O MorillaFlix é um projeto movido por Inteligência Artificial para recomendar filmes e séries automaticamente, de acordo com o seu gosto e humor. Totalmente gratuito e simples de usar!</p>
-    <p>Desenvolvido com ❤️ para os amantes de cinema.</p>
+  <!-- ===== SOBRE (ESCONDIDO) ===== -->
+  <section id="sobre" class="sobre-section" aria-label="Sobre o MorillaFlix">
+    <h3>📽️ Sobre</h3>
+    <p>O MorillaFlix usa Inteligência Artificial para interpretar seu humor e seus pedidos,
+      transformando isso em gêneros e buscas na TMDb. Assim, você recebe recomendações certeiras
+      sem esforço.</p>
+    <p>Projeto feito com ❤️ para cinéfilos.</p>
   </section>
 
   <!-- ===== MODAL TRAILER ===== -->
-  <div id="trailer-modal" class="trailer-modal">
-    <div class="trailer-content">
-      <span id="close-modal" class="close-btn">&times;</span>
+  <div id="trailer-modal" class="trailer-modal" aria-hidden="true">
+    <div class="trailer-content" role="dialog" aria-label="Trailer">
+      <button id="close-modal" class="close-btn" aria-label="Fechar">×</button>
       <iframe id="trailer-video" frameborder="0" allowfullscreen></iframe>
     </div>
   </div>
 
-  <!-- ===== FOOTER ===== -->
-  <footer>
-    © 2025 MorillaFlix. Todos os direitos reservados.
-  </footer>
-
-  <script src="script.js"></script>
+  <footer>© 2025 MorillaFlix</footer>
 </body>
 </html>
