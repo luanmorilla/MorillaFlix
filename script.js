@@ -87,8 +87,18 @@ function createCard(item,type){
       <button class="toggle-overview" type="button">Leia mais</button>
       <p class="meta">Nota: <span class="stars">${renderStars(rating)}</span></p>
       <div class="actions">
-        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener">🎬 Assistir agora</a>
-        <button class="trailer-btn" type="button">🎥 Ver Trailer</button>
+        <a class="watch-now" href="${AFFILIATE_LINK}" target="_blank" rel="noopener">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M4 4h2l2 4h8l2-4h2l2 4v12H2V8l2-4zm2 6v8h12v-8H6z"/>
+          </svg>
+          Assistir agora
+        </a>
+        <button class="trailer-btn" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M17 10.5V7c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-3.5l4 4v-11l-4 4z"/>
+          </svg>
+          Ver Trailer
+        </button>
       </div>
     </div>
   `;
@@ -153,7 +163,6 @@ async function search(text=null){
   resultsContainer.innerHTML = "";
   items.forEach(it => resultsContainer.appendChild(createCard(it,type)));
 
-  // fade-in nos resultados
   resultsContainer.style.opacity = "0";
   setTimeout(() => {
     resultsContainer.style.opacity = "1";
@@ -175,29 +184,41 @@ function renderGeneros(){
   });
 }
 
-// ===== Banner dinâmico
-let featuredMovieId = null;
+// ===== Banner automático com lançamentos =====
+let featuredIndex = 0;
+let featuredMovies = [];
+
 async function loadFeatured(){
   try{
     showHeroLoading();
-    const ids = Object.values(movieGenres);
-    const gid = ids[Math.floor(Math.random()*ids.length)];
-    const pg  = Math.floor(Math.random()*10)+1;
-    const res = await fetch(`/api/tmdb?type=movie&genreId=${gid}&page=${pg}`);
+    const currentYear = new Date().getFullYear();
+    const res = await fetch(`/api/tmdb?type=movie&sort_by=popularity.desc&year=${currentYear}&page=1`);
     const data = await res.json();
-    const list = (data.results||[]).filter(x=>x.backdrop_path);
-    if(!list.length) return;
+    featuredMovies = (data.results || []).filter(x => x.backdrop_path);
+    if(featuredMovies.length === 0) return;
 
-    const first = list[0];
-    featuredMovieId = first.id;
-    featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${first.backdrop_path})`;
-    heroTitle.textContent = first.title || "Destaque";
-    heroDesc.textContent = first.overview || "Sem sinopse disponível";
-    heroWatchBtn.href = AFFILIATE_LINK;
+    showFeaturedBanner();
     clearHeroLoading();
+
+    setInterval(() => {
+      featuredIndex = (featuredIndex + 1) % featuredMovies.length;
+      showFeaturedBanner();
+    }, 10000);
   }catch(e){
     console.error('banner',e);
   }
+}
+
+function showFeaturedBanner(){
+  const movie = featuredMovies[featuredIndex];
+  featuredMovieId = movie.id;
+  featuredBanner.classList.remove('fade');
+  void featuredBanner.offsetWidth; // reinicia animação
+  featuredBanner.classList.add('fade');
+  featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+  heroTitle.textContent = movie.title || "Destaque";
+  heroDesc.textContent = movie.overview || "Sem sinopse disponível";
+  heroWatchBtn.href = AFFILIATE_LINK;
 }
 heroTrailerBtn.addEventListener('click',()=>{ if(featuredMovieId) fetchTrailer(featuredMovieId,'movie'); });
 

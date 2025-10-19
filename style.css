@@ -194,3 +194,11 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
     background-size: 110%;
   }
 }
+/* ===== FADE SUAVE ENTRE BANNERS ===== */
+.hero.fade {
+  animation: fadeBanner 1s ease-in-out;
+}
+@keyframes fadeBanner {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
