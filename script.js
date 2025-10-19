@@ -214,3 +214,40 @@ async function loadFeatured() {
 }
 
 loadFeatured();
+// ======== MODAL DO TRAILER ========
+function openTrailer(videoKey) {
+  const modal = document.getElementById("trailer-modal");
+  const iframe = document.getElementById("trailer-video");
+  iframe.src = `https://www.youtube.com/embed/${videoKey}?autoplay=1`;
+  modal.style.display = "flex";
+}
+
+function closeTrailer() {
+  const modal = document.getElementById("trailer-modal");
+  const iframe = document.getElementById("trailer-video");
+  iframe.src = "";
+  modal.style.display = "none";
+}
+
+document.getElementById("close-modal").addEventListener("click", closeTrailer);
+
+document.getElementById("trailer-modal").addEventListener("click", (e) => {
+  if (e.target.id === "trailer-modal") closeTrailer();
+});
+
+// ======== FETCH TRAILER ========
+async function fetchTrailer(id, type) {
+  try {
+    const res = await fetch(`/api/tmdb/trailer?id=${id}&type=${type}`);
+    const data = await res.json();
+
+    if (data.key) {
+      openTrailer(data.key);
+    } else {
+      alert("Trailer não disponível 😔");
+    }
+  } catch (err) {
+    console.error("❌ Erro ao buscar trailer:", err);
+    alert("Erro ao carregar trailer.");
+  }
+}

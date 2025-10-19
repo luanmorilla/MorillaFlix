@@ -14,21 +14,17 @@
     <h1 class="logo">🦍 MorillaFlix</h1>
   </header>
 
-  <!-- BANNER CINEMATOGRÁFICO -->
+  <!-- BANNER -->
   <section class="hero">
     <div class="hero-content">
-      <h2 id="hero-title">PANORAMA SITH</h2>
-      <p id="hero-description">
-        Uma jornada intensa de um protagonista solitário em um universo sombrio e misterioso.
-      </p>
-      <a href="https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17"
-         target="_blank"
-         id="hero-watch-btn"
-         class="watch-now">🎬 Assistir agora</a>
+      <h2 id="hero-title">Carregando...</h2>
+      <p id="hero-description">Descubra os melhores filmes aqui</p>
+      <a href="#" id="hero-watch-btn" class="watch-now">🎬 Assistir agora</a>
+      <button id="hero-trailer-btn" class="trailer-btn">🎥 Ver Trailer</button>
     </div>
   </section>
 
-  <!-- BARRA DE PESQUISA -->
+  <!-- PESQUISA -->
   <section class="search-section">
     <input type="text" id="search-input" placeholder="Digite o gênero (Ação, Comédia...)">
     <div class="buttons">
@@ -42,6 +38,14 @@
     <h3>Resultados</h3>
     <div id="results" class="results-carousel"></div>
   </section>
+
+  <!-- MODAL DO TRAILER -->
+  <div id="trailer-modal" class="trailer-modal">
+    <div class="trailer-content">
+      <span id="close-modal" class="close-btn">&times;</span>
+      <iframe id="trailer-video" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer>
