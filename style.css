@@ -277,3 +277,53 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
     gap: 10px;
   }
 }
+/* =============== CORREÇÃO DEFINITIVA MOBILE HERO =============== */
+@media (max-width: 768px) {
+  .hero {
+    position: relative;
+    display: block;
+    background-position: center;
+    background-size: cover;
+    padding: 0;
+    margin: 0;
+    height: auto;
+    min-height: 220px;
+  }
+
+  /* remove o gradiente que estava por cima da imagem */
+  .hero::before {
+    display: none !important;
+  }
+
+  .hero-content {
+    position: static !important;  /* remove qualquer sobreposição */
+    display: block;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-top: 0;
+    padding: 20px 15px;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
+  }
+
+  .hero-content h2 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+  }
+
+  .hero-content p {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
