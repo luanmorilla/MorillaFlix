@@ -1,5 +1,5 @@
 /* =========================================================================
-   MORILLALFLIX — script.js (versão TURBO IA + multi-gêneros + avaliações)
+   MORILLALFLIX — script.js (versão TURBO IA + multi-gêneros + mobile fix)
    ========================================================================= */
 
 // ===== Seletores principais (DOM)
@@ -39,26 +39,25 @@ const tvGenres = {
   "Guerra e Política": 10768,"Faroeste": 37
 };
 
+// ===== Mapas auxiliares
 const normalize = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const movieGenresNorm = Object.fromEntries(Object.entries(movieGenres).map(([k,v])=>[normalize(k),v]));
 const tvGenresNorm    = Object.fromEntries(Object.entries(tvGenres).map(([k,v])=>[normalize(k),v]));
 
-/* =========================================================================
-   HUMOR MAP
-   ========================================================================= */
+// ===== HUMOR
 const MOOD_MAP = {
-  "animado":      { genero: "Ação",            type: "movie" },
-  "triste":       { genero: "Comédia",         type: "movie" },
-  "assustado":    { genero: "Terror",          type: "movie" },
-  "romântico":    { genero: "Romance",         type: "movie" },
-  "romantico":    { genero: "Romance",         type: "movie" },
-  "entediado":    { genero: "Aventura",        type: "movie" },
-  "nervoso":      { genero: "Thriller",        type: "movie" },
-  "pensativo":    { genero: "Drama",           type: "movie" },
-  "curioso":      { genero: "Mistério",        type: "movie" },
-  "futurista":    { genero: "Ficção científica", type: "movie" },
-  "família":      { genero: "Família",         type: "movie" },
-  "familia":      { genero: "Família",         type: "movie" },
+  "animado": { genero: "Ação", type: "movie" },
+  "triste": { genero: "Comédia", type: "movie" },
+  "assustado": { genero: "Terror", type: "movie" },
+  "romântico": { genero: "Romance", type: "movie" },
+  "romantico": { genero: "Romance", type: "movie" },
+  "entediado": { genero: "Aventura", type: "movie" },
+  "nervoso": { genero: "Thriller", type: "movie" },
+  "pensativo": { genero: "Drama", type: "movie" },
+  "curioso": { genero: "Mistério", type: "movie" },
+  "futurista": { genero: "Ficção científica", type: "movie" },
+  "família": { genero: "Família", type: "movie" },
+  "familia": { genero: "Família", type: "movie" },
 };
 
 /* =========================================================================
@@ -149,7 +148,7 @@ function clearHeroLoading(){
 }
 
 /* =========================================================================
-   CARDS
+   CARDS (Mobile Friendly)
    ========================================================================= */
 function createCard(item,type){
   const title   = item.title || item.name || "Sem título";
@@ -186,12 +185,12 @@ function createCard(item,type){
     btn.textContent = expanded ? 'Leia menos' : 'Leia mais';
   });
 
-  el.querySelector('.trailer-btn')?.addEventListener('click',()=>fetchTrailer(item.id,type,overview));
+  el.querySelector('.trailer-btn').addEventListener('click',()=>fetchTrailer(item.id,type,overview));
   return el;
 }
 
 /* =========================================================================
-   BUSCA
+   BUSCA (multi-gêneros)
    ========================================================================= */
 async function fetchByGenre(type,genreId){
   try{
@@ -205,12 +204,12 @@ async function fetchByGenre(type,genreId){
 }
 
 async function search(text=null){
-  const input = (text ?? searchInput?.value || "").trim();
+  const input = (text ?? searchInput.value).trim();
   if(!input) return;
   showLoading();
 
   const ai = await askAI(input);
-  let [generosRaw,tipoRaw] = (ai || "").split('|').map(s=> (s||'').trim());
+  let [generosRaw,tipoRaw] = ai.split('|').map(s=> (s||'').trim());
   let generos = (generosRaw || "").split(',').map(g=>g.trim()).filter(Boolean);
 
   if(!generos.length){
@@ -293,9 +292,9 @@ async function loadFeatured(){
     if(featuredMovies.length === 0){
       clearHeroLoading();
       featuredBanner.style.backgroundImage = 'none';
-      heroTitle && (heroTitle.textContent = "Sem destaques no momento");
-      heroDesc  && (heroDesc.textContent  = "Tente novamente mais tarde ou faça uma busca.");
-      heroWatchBtn && (heroWatchBtn.href  = AFFILIATE_LINK);
+      heroTitle.textContent = "Sem destaques no momento";
+      heroDesc.textContent  = "Tente novamente mais tarde ou faça uma busca.";
+      heroWatchBtn.href     = AFFILIATE_LINK;
       return;
     }
     showFeaturedBanner();
@@ -319,9 +318,9 @@ function showFeaturedBanner(){
   void featuredBanner.offsetWidth;
   featuredBanner.classList.add('fade');
   featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-  heroTitle && (heroTitle.textContent = movie.title || "Destaque");
-  heroDesc  && (heroDesc.textContent  = movie.overview || "Sem sinopse disponível");
-  heroWatchBtn && (heroWatchBtn.href  = AFFILIATE_LINK);
+  heroTitle.textContent = movie.title || "Destaque";
+  heroDesc.textContent  = movie.overview || "Sem sinopse disponível";
+  heroWatchBtn.href     = AFFILIATE_LINK;
 }
 function shuffleArray(arr){
   const a = [...arr];
@@ -331,8 +330,8 @@ function shuffleArray(arr){
   }
   return a;
 }
-heroTrailerBtn?.addEventListener('click',()=>{
-  if(featuredMovieId) fetchTrailer(featuredMovieId,'movie',heroDesc?.textContent || '');
+heroTrailerBtn.addEventListener('click',()=>{
+  if(featuredMovieId) fetchTrailer(featuredMovieId,'movie',heroDesc.textContent);
 });
 
 /* =========================================================================
@@ -341,7 +340,6 @@ heroTrailerBtn?.addEventListener('click',()=>{
 function openTrailer(key){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
-  if(!modal || !iframe) return;
   iframe.src = `https://www.youtube.com/embed/${key}?autoplay=1`;
   modal.style.display='flex';
   modal.setAttribute('aria-hidden','false');
@@ -349,13 +347,12 @@ function openTrailer(key){
 function closeTrailer(){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
-  if(!modal || !iframe) return;
   iframe.src = '';
   modal.style.display='none';
   modal.setAttribute('aria-hidden','true');
 }
-document.getElementById('close-modal')?.addEventListener('click',closeTrailer);
-document.getElementById('trailer-modal')?.addEventListener('click',e=>{
+document.getElementById('close-modal').addEventListener('click',closeTrailer);
+document.getElementById('trailer-modal').addEventListener('click',e=>{
   if(e.target.id==='trailer-modal') closeTrailer();
 });
 
@@ -394,17 +391,17 @@ document.querySelectorAll('.navbar a').forEach(a=>{
     const target = a.dataset.nav;
     document.querySelectorAll('.navbar a').forEach(x=>x.classList.remove('active'));
     a.classList.add('active');
-    generosSection?.classList.remove('active');
-    sobreSection?.classList.remove('active');
+    generosSection.classList.remove('active');
+    sobreSection.classList.remove('active');
     if(target==='generos'){
       e.preventDefault();
       renderGeneros();
-      generosSection?.classList.add('active');
-      window.scrollTo({top:(generosSection?.offsetTop || 0)-70,behavior:'smooth'});
+      generosSection.classList.add('active');
+      window.scrollTo({top:generosSection.offsetTop-70,behavior:'smooth'});
     }else if(target==='sobre'){
       e.preventDefault();
-      sobreSection?.classList.add('active');
-      window.scrollTo({top:(sobreSection?.offsetTop || 0)-70,behavior:'smooth'});
+      sobreSection.classList.add('active');
+      window.scrollTo({top:sobreSection.offsetTop-70,behavior:'smooth'});
     }
   });
 });
@@ -430,92 +427,11 @@ if(moodButtonsWrap){
 }
 
 /* =========================================================================
-   SISTEMA DE AVALIAÇÕES ⭐
-   ========================================================================= */
-const starContainer = document.getElementById('star-rating');
-if (starContainer) {
-  const stars = starContainer.querySelectorAll('span');
-  const comentarioInput = document.getElementById('comentario');
-  const enviarAvaliacaoBtn = document.getElementById('enviar-avaliacao');
-  const avaliacoesLista = document.getElementById('avaliacoes-lista');
-
-  let avaliacaoSelecionada = 0;
-
-  // Selecionar estrelas
-  stars.forEach(star => {
-    star.addEventListener('click', () => {
-      avaliacaoSelecionada = parseInt(star.getAttribute('data-value'));
-      stars.forEach(s => s.classList.remove('selected'));
-      for (let i = 0; i < avaliacaoSelecionada; i++) {
-        stars[i].classList.add('selected');
-      }
-    });
-  });
-
-  // Enviar avaliação
-  enviarAvaliacaoBtn?.addEventListener('click', () => {
-    const comentario = (comentarioInput?.value || '').trim();
-    if (avaliacaoSelecionada === 0) {
-      alert('Por favor, selecione uma quantidade de estrelas.');
-      return;
-    }
-    if (comentario === '') {
-      alert('Por favor, escreva um comentário.');
-      return;
-    }
-
-    const novaAvaliacao = {
-      estrelas: avaliacaoSelecionada,
-      comentario: comentario,
-      data: new Date().toLocaleString('pt-BR')
-    };
-
-    let avaliacoes = JSON.parse(localStorage.getItem('avaliacoesMorillaFlix')) || [];
-    avaliacoes.unshift(novaAvaliacao);
-    localStorage.setItem('avaliacoesMorillaFlix', JSON.stringify(avaliacoes));
-
-    if (comentarioInput) comentarioInput.value = '';
-    avaliacaoSelecionada = 0;
-    stars.forEach(s => s.classList.remove('selected'));
-    exibirAvaliacoes();
-  });
-
-  function exibirAvaliacoes() {
-    if (!avaliacoesLista) return;
-    avaliacoesLista.innerHTML = '';
-    const avaliacoes = JSON.parse(localStorage.getItem('avaliacoesMorillaFlix')) || [];
-
-    if (avaliacoes.length === 0) {
-      avaliacoesLista.innerHTML = '<p style="text-align:center; color:#aaa;">Nenhuma avaliação ainda. Seja o primeiro! ⭐</p>';
-      return;
-    }
-
-    avaliacoes.forEach(avaliacao => {
-      const item = document.createElement('div');
-      item.classList.add('avaliacao-item');
-
-      const estrelas = '★'.repeat(avaliacao.estrelas) + '☆'.repeat(5 - avaliacao.estrelas);
-
-      item.innerHTML = `
-        <div class="estrelas">${estrelas}</div>
-        <p>${avaliacao.comentario}</p>
-        <small style="color:#777; font-size:0.8rem;">${avaliacao.data}</small>
-      `;
-
-      avaliacoesLista.appendChild(item);
-    });
-  }
-
-  // Carregar avaliações ao abrir
-  window.addEventListener('DOMContentLoaded', exibirAvaliacoes);
-}
-
-/* =========================================================================
    EVENTOS
    ========================================================================= */
-searchButton?.addEventListener('click',()=>search());
-searchInput?.addEventListener('keyup',e=>{ if(e.key==='Enter') search(); });
-surpriseButton?.addEventListener('click',()=>{
+searchButton.addEventListener('click',()=>search());
+searchInput.addEventListener('keyup',e=>{ if(e.key==='Enter') search(); });
+surpriseButton.addEventListener('click',()=>{
   const arr = Object.keys(movieGenres);
   const gen = arr[Math.floor(Math.random()*arr.length)];
   search(gen);
@@ -525,5 +441,5 @@ surpriseButton?.addEventListener('click',()=>{
    BOOT
    ========================================================================= */
 renderGeneros();
-if (resultsTitle) resultsTitle.textContent = 'Top do momento';
+resultsTitle.textContent = 'Top do momento';
 loadFeatured();
