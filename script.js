@@ -186,7 +186,7 @@ function createCard(item,type){
     btn.textContent = expanded ? 'Leia menos' : 'Leia mais';
   });
 
-  el.querySelector('.trailer-btn').addEventListener('click',()=>fetchTrailer(item.id,type,overview));
+  el.querySelector('.trailer-btn')?.addEventListener('click',()=>fetchTrailer(item.id,type,overview));
   return el;
 }
 
@@ -205,12 +205,12 @@ async function fetchByGenre(type,genreId){
 }
 
 async function search(text=null){
-  const input = (text ?? searchInput.value).trim();
+  const input = (text ?? searchInput?.value || "").trim();
   if(!input) return;
   showLoading();
 
   const ai = await askAI(input);
-  let [generosRaw,tipoRaw] = ai.split('|').map(s=> (s||'').trim());
+  let [generosRaw,tipoRaw] = (ai || "").split('|').map(s=> (s||'').trim());
   let generos = (generosRaw || "").split(',').map(g=>g.trim()).filter(Boolean);
 
   if(!generos.length){
@@ -293,9 +293,9 @@ async function loadFeatured(){
     if(featuredMovies.length === 0){
       clearHeroLoading();
       featuredBanner.style.backgroundImage = 'none';
-      heroTitle.textContent = "Sem destaques no momento";
-      heroDesc.textContent  = "Tente novamente mais tarde ou faça uma busca.";
-      heroWatchBtn.href     = AFFILIATE_LINK;
+      heroTitle && (heroTitle.textContent = "Sem destaques no momento");
+      heroDesc  && (heroDesc.textContent  = "Tente novamente mais tarde ou faça uma busca.");
+      heroWatchBtn && (heroWatchBtn.href  = AFFILIATE_LINK);
       return;
     }
     showFeaturedBanner();
@@ -319,9 +319,9 @@ function showFeaturedBanner(){
   void featuredBanner.offsetWidth;
   featuredBanner.classList.add('fade');
   featuredBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-  heroTitle.textContent = movie.title || "Destaque";
-  heroDesc.textContent  = movie.overview || "Sem sinopse disponível";
-  heroWatchBtn.href     = AFFILIATE_LINK;
+  heroTitle && (heroTitle.textContent = movie.title || "Destaque");
+  heroDesc  && (heroDesc.textContent  = movie.overview || "Sem sinopse disponível");
+  heroWatchBtn && (heroWatchBtn.href  = AFFILIATE_LINK);
 }
 function shuffleArray(arr){
   const a = [...arr];
@@ -331,8 +331,8 @@ function shuffleArray(arr){
   }
   return a;
 }
-heroTrailerBtn.addEventListener('click',()=>{
-  if(featuredMovieId) fetchTrailer(featuredMovieId,'movie',heroDesc.textContent);
+heroTrailerBtn?.addEventListener('click',()=>{
+  if(featuredMovieId) fetchTrailer(featuredMovieId,'movie',heroDesc?.textContent || '');
 });
 
 /* =========================================================================
@@ -341,6 +341,7 @@ heroTrailerBtn.addEventListener('click',()=>{
 function openTrailer(key){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
+  if(!modal || !iframe) return;
   iframe.src = `https://www.youtube.com/embed/${key}?autoplay=1`;
   modal.style.display='flex';
   modal.setAttribute('aria-hidden','false');
@@ -348,12 +349,13 @@ function openTrailer(key){
 function closeTrailer(){
   const modal = document.getElementById('trailer-modal');
   const iframe = document.getElementById('trailer-video');
+  if(!modal || !iframe) return;
   iframe.src = '';
   modal.style.display='none';
   modal.setAttribute('aria-hidden','true');
 }
-document.getElementById('close-modal').addEventListener('click',closeTrailer);
-document.getElementById('trailer-modal').addEventListener('click',e=>{
+document.getElementById('close-modal')?.addEventListener('click',closeTrailer);
+document.getElementById('trailer-modal')?.addEventListener('click',e=>{
   if(e.target.id==='trailer-modal') closeTrailer();
 });
 
@@ -392,17 +394,17 @@ document.querySelectorAll('.navbar a').forEach(a=>{
     const target = a.dataset.nav;
     document.querySelectorAll('.navbar a').forEach(x=>x.classList.remove('active'));
     a.classList.add('active');
-    generosSection.classList.remove('active');
-    sobreSection.classList.remove('active');
+    generosSection?.classList.remove('active');
+    sobreSection?.classList.remove('active');
     if(target==='generos'){
       e.preventDefault();
       renderGeneros();
-      generosSection.classList.add('active');
-      window.scrollTo({top:generosSection.offsetTop-70,behavior:'smooth'});
+      generosSection?.classList.add('active');
+      window.scrollTo({top:(generosSection?.offsetTop || 0)-70,behavior:'smooth'});
     }else if(target==='sobre'){
       e.preventDefault();
-      sobreSection.classList.add('active');
-      window.scrollTo({top:sobreSection.offsetTop-70,behavior:'smooth'});
+      sobreSection?.classList.add('active');
+      window.scrollTo({top:(sobreSection?.offsetTop || 0)-70,behavior:'smooth'});
     }
   });
 });
@@ -425,7 +427,7 @@ if(moodButtonsWrap){
       }
     });
   });
-});
+}
 
 /* =========================================================================
    SISTEMA DE AVALIAÇÕES ⭐
@@ -439,6 +441,7 @@ if (starContainer) {
 
   let avaliacaoSelecionada = 0;
 
+  // Selecionar estrelas
   stars.forEach(star => {
     star.addEventListener('click', () => {
       avaliacaoSelecionada = parseInt(star.getAttribute('data-value'));
@@ -449,8 +452,9 @@ if (starContainer) {
     });
   });
 
-  enviarAvaliacaoBtn.addEventListener('click', () => {
-    const comentario = comentarioInput.value.trim();
+  // Enviar avaliação
+  enviarAvaliacaoBtn?.addEventListener('click', () => {
+    const comentario = (comentarioInput?.value || '').trim();
     if (avaliacaoSelecionada === 0) {
       alert('Por favor, selecione uma quantidade de estrelas.');
       return;
@@ -470,13 +474,14 @@ if (starContainer) {
     avaliacoes.unshift(novaAvaliacao);
     localStorage.setItem('avaliacoesMorillaFlix', JSON.stringify(avaliacoes));
 
-    comentarioInput.value = '';
+    if (comentarioInput) comentarioInput.value = '';
     avaliacaoSelecionada = 0;
     stars.forEach(s => s.classList.remove('selected'));
     exibirAvaliacoes();
   });
 
   function exibirAvaliacoes() {
+    if (!avaliacoesLista) return;
     avaliacoesLista.innerHTML = '';
     const avaliacoes = JSON.parse(localStorage.getItem('avaliacoesMorillaFlix')) || [];
 
@@ -501,15 +506,16 @@ if (starContainer) {
     });
   }
 
+  // Carregar avaliações ao abrir
   window.addEventListener('DOMContentLoaded', exibirAvaliacoes);
 }
 
 /* =========================================================================
    EVENTOS
    ========================================================================= */
-searchButton.addEventListener('click',()=>search());
-searchInput.addEventListener('keyup',e=>{ if(e.key==='Enter') search(); });
-surpriseButton.addEventListener('click',()=>{
+searchButton?.addEventListener('click',()=>search());
+searchInput?.addEventListener('keyup',e=>{ if(e.key==='Enter') search(); });
+surpriseButton?.addEventListener('click',()=>{
   const arr = Object.keys(movieGenres);
   const gen = arr[Math.floor(Math.random()*arr.length)];
   search(gen);
@@ -519,5 +525,5 @@ surpriseButton.addEventListener('click',()=>{
    BOOT
    ========================================================================= */
 renderGeneros();
-resultsTitle.textContent = 'Top do momento';
+if (resultsTitle) resultsTitle.textContent = 'Top do momento';
 loadFeatured();
