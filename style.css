@@ -230,28 +230,34 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
   .hero {
     min-height: 250px;
     height: auto;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     background-position: center;
     background-size: cover;
     padding-bottom: 0;
     animation: none;
+    position: relative;
   }
 
+  /* REMOVE o gradiente original no mobile */
   .hero::before {
     display: none;
   }
 
+  /* NOVO bloco abaixo da imagem */
   .hero-content {
-    background: rgba(0,0,0,0.9);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    margin-top: -2px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    width: 100%;
     padding: 20px 15px;
     text-align: center;
-    position: relative;
     z-index: 1;
-    animation: fadeIn 0.5s ease;
     border-top: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
+    animation: fadeIn 0.5s ease;
   }
 
   .hero-content h2 {
