@@ -38,7 +38,14 @@ header{
   content:"";position:absolute;inset:0;
   background:linear-gradient(to top,rgba(0,0,0,0.85),rgba(0,0,0,0.4))
 }
-.hero-content{position:relative;text-align:center;padding:20px;max-width:900px;z-index:2}
+.hero-content{
+  position:relative;
+  text-align:center;
+  padding:20px;
+  max-width:900px;
+  z-index:2;
+  animation:fadeIn 0.6s ease;
+}
 .hero-content h2{font-size:1.9rem;font-weight:800;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,0.8)}
 .hero-content p{color:#ddd;margin:10px auto 15px;max-width:700px;line-height:1.5}
 .hero-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
@@ -84,8 +91,40 @@ header{
 .card-info h3{font-size:1rem;line-height:1.2}
 .type{opacity:.8;font-size:.85rem}
 .overview{font-size:.86rem;color:#cfcfcf;line-height:1.45;max-height:84px;overflow:hidden;transition:max-height .3s}
-.toggle-overview{background:#fff;color:#000;border:none;border-radius:8px;padding:6px 10px;font-size:.8rem;cursor:pointer}
-.meta{font-size:.85rem;color:#ddd}
+
+/* ===== BOTÃO LEIA MAIS ===== */
+.toggle-overview {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #e50914, #b0060d);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.toggle-overview:hover {
+  background: linear-gradient(135deg, #ff1b25, #c40f19);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+.toggle-overview:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(229, 9, 20, 0.4);
+}
+@media (max-width: 600px) {
+  .toggle-overview {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+    text-align: center;
+  }
+}
 
 /* ===== BOTÕES DE AÇÃO COM ÍCONES ===== */
 .actions {
@@ -186,66 +225,49 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
 .hero.fade {animation: fadeBanner 1s ease-in-out;}
 @keyframes fadeBanner {from {opacity: 0;}to {opacity: 1;}}
 
-/* ===== HERO MOBILE - SINOPSE ABAIXO ===== */
+/* ===== HERO MOBILE — SINOPSE ABAIXO DA IMAGEM COM DESFOQUE ===== */
 @media (max-width: 768px) {
   .hero {
+    min-height: 250px;
     height: auto;
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    display: block;
     background-position: center;
+    background-size: cover;
+    padding-bottom: 0;
+    animation: none;
   }
+
+  .hero::before {
+    display: none;
+  }
+
   .hero-content {
-    position: static;
-    background: #000;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    margin-top: -2px;
     padding: 20px 15px;
     text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.5s ease;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
-  .hero-content h2 {font-size: 1.4rem;}
+
+  .hero-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
   .hero-content p {
-    color: #ccc;
     font-size: 0.95rem;
-    line-height: 1.4;
+    color: #ccc;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: 10px;
   }
 }
-/* ===============================
-   BOTÃO LEIA MAIS — ESTILO MODERNO
-   =============================== */
-   .toggle-overview {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 8px 14px;
-    background: linear-gradient(135deg, #e50914, #b0060d);
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 500;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    text-align: center;
-    letter-spacing: 0.5px;
-  }
-  
-  .toggle-overview:hover {
-    background: linear-gradient(135deg, #ff1b25, #c40f19);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
-  }
-  
-  .toggle-overview:active {
-    transform: scale(0.97);
-    box-shadow: 0 2px 6px rgba(229, 9, 20, 0.4);
-  }
-  
-  /* Responsivo — Centraliza botão em telas menores */
-  @media (max-width: 600px) {
-    .toggle-overview {
-      width: 100%;
-      font-size: 1rem;
-      padding: 10px;
-      text-align: center;
-    }
-  }
-  
