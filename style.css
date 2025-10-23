@@ -245,15 +245,17 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
     background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
   }
 
+  /* Bloco abaixo da imagem */
   .hero-content {
-    position: relative;
+    position: static;  /* agora não fica mais sobre a imagem */
     background: #000;
-    margin-top: 0;
     padding: 20px 15px;
     text-align: center;
     width: 100%;
     z-index: 2;
-    transform: translateY(100%);
+    margin-top: 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
   }
 
   .hero-content h2 {
