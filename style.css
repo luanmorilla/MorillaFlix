@@ -181,24 +181,71 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
 
 /* ===== ANIMAÇÕES ===== */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-/* ===== HERO ZOOM LENTO ===== */
-.hero {
-  animation: zoomHero 20s ease-in-out infinite alternate;
-}
+.hero {animation: zoomHero 20s ease-in-out infinite alternate;}
+@keyframes zoomHero {0% {background-size: 100%;}100% {background-size: 110%;}}
+.hero.fade {animation: fadeBanner 1s ease-in-out;}
+@keyframes fadeBanner {from {opacity: 0;}to {opacity: 1;}}
 
-@keyframes zoomHero {
-  0% {
-    background-size: 100%;
+/* ===== HERO MOBILE - SINOPSE ABAIXO ===== */
+@media (max-width: 768px) {
+  .hero {
+    height: auto;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background-position: center;
   }
-  100% {
-    background-size: 110%;
+  .hero-content {
+    position: static;
+    background: #000;
+    padding: 20px 15px;
+    text-align: center;
+  }
+  .hero-content h2 {font-size: 1.4rem;}
+  .hero-content p {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.4;
   }
 }
-/* ===== FADE SUAVE ENTRE BANNERS ===== */
-.hero.fade {
-  animation: fadeBanner 1s ease-in-out;
-}
-@keyframes fadeBanner {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* ===============================
+   BOTÃO LEIA MAIS — ESTILO MODERNO
+   =============================== */
+   .toggle-overview {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #e50914, #b0060d);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  
+  .toggle-overview:hover {
+    background: linear-gradient(135deg, #ff1b25, #c40f19);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+  }
+  
+  .toggle-overview:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(229, 9, 20, 0.4);
+  }
+  
+  /* Responsivo — Centraliza botão em telas menores */
+  @media (max-width: 600px) {
+    .toggle-overview {
+      width: 100%;
+      font-size: 1rem;
+      padding: 10px;
+      text-align: center;
+    }
+  }
+  
