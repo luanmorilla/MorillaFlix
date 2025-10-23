@@ -20,16 +20,17 @@
         <li><a href="#generos" data-nav="generos">Gêneros</a></li>
         <li><a href="#favoritos" data-nav="favoritos">Favoritos</a></li>
         <li><a href="#sobre" data-nav="sobre">Sobre</a></li>
+        <li><a href="#avaliacoes" data-nav="avaliacoes">Avaliações</a></li>
       </ul>
     </nav>
   </header>
 
   <!-- ===== HERO (Imagem do destaque) ===== -->
   <section class="hero" id="inicio" aria-label="Destaque">
-    <!-- A imagem e gradiente ficam aqui -->
+    <!-- Imagem do destaque controlada pelo JS -->
   </section>
 
-  <!-- ===== HERO INFO (Texto e botões abaixo da imagem) ===== -->
+  <!-- ===== HERO INFO (Texto abaixo da imagem) ===== -->
   <section class="hero-info">
     <div class="hero-content">
       <h2 id="hero-title">Carregando…</h2>
@@ -82,6 +83,29 @@
       transformando isso em gêneros e buscas na TMDb. Assim, você recebe recomendações certeiras
       sem esforço.</p>
     <p>Projeto feito com ❤️ para cinéfilos.</p>
+  </section>
+
+  <!-- ===== AVALIAÇÕES ===== -->
+  <section id="avaliacoes" class="avaliacoes-section" aria-label="Avaliações dos usuários">
+    <h3>⭐ Avaliações dos Usuários</h3>
+
+    <!-- Formulário de Avaliação -->
+    <div class="avaliacao-form">
+      <div class="star-rating" id="star-rating">
+        <span data-value="1">★</span>
+        <span data-value="2">★</span>
+        <span data-value="3">★</span>
+        <span data-value="4">★</span>
+        <span data-value="5">★</span>
+      </div>
+      <textarea id="comentario" placeholder="Deixe seu comentário..." maxlength="200"></textarea>
+      <button id="enviar-avaliacao" class="btn btn-primary">Enviar Avaliação</button>
+    </div>
+
+    <!-- Lista de Comentários -->
+    <div class="avaliacoes-lista" id="avaliacoes-lista">
+      <!-- Comentários aparecem aqui -->
+    </div>
   </section>
 
   <!-- ===== MODAL TRAILER ===== -->

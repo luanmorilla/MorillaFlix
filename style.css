@@ -228,6 +228,60 @@ header {
 }
 .close-btn:hover { background: #e50914; }
 
+/* ===== AVALIAÇÕES ===== */
+.avaliacoes-section {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #111;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+  animation: fadeIn 0.5s ease;
+}
+.avaliacoes-section h3 {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+.avaliacao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.star-rating {
+  display: flex;
+  gap: 5px;
+  font-size: 2rem;
+  cursor: pointer;
+}
+.star-rating span { color: #444; transition: color 0.2s; }
+.star-rating span:hover,
+.star-rating span:hover ~ span,
+.star-rating span.selected { color: #e50914; }
+.avaliacao-form textarea {
+  width: 100%;
+  max-width: 500px;
+  min-height: 80px;
+  background: #171717;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  resize: none;
+}
+.avaliacoes-lista { display: flex; flex-direction: column; gap: 15px; }
+.avaliacao-item {
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #222;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.avaliacao-item .estrelas { color: #e50914; font-size: 1.2rem; margin-bottom: 6px; }
+.avaliacao-item p { color: #ccc; font-size: 0.95rem; line-height: 1.4; }
+
 /* ===== FOOTER ===== */
 footer {
   border-top: 1px solid #111;
