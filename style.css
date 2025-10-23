@@ -225,42 +225,40 @@ footer{border-top:1px solid #111;margin-top:30px;padding:18px;text-align:center;
 .hero.fade {animation: fadeBanner 1s ease-in-out;}
 @keyframes fadeBanner {from {opacity: 0;}to {opacity: 1;}}
 
-/* ===== HERO MOBILE — SINOPSE ABAIXO DA IMAGEM (FINAL) ===== */
+/* ===== HERO MOBILE — SINOPSE ABAIXO ===== */
 @media (max-width: 768px) {
   .hero {
     position: relative;
-    display: block;
-    min-height: 250px;
-    height: auto;
+    height: 250px;
     background-position: center;
     background-size: cover;
-    padding: 0;
-    margin: 0;
-    animation: none;
+    background-repeat: no-repeat;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    overflow: hidden;
   }
 
   .hero::before {
-    display: none !important;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
   }
 
   .hero-content {
-    position: static !important;
-    display: block;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    background: #000;
+    margin-top: 0;
     padding: 20px 15px;
-    width: 100%;
     text-align: center;
+    width: 100%;
     z-index: 2;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
-    animation: fadeIn 0.5s ease;
+    transform: translateY(100%);
   }
 
   .hero-content h2 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
   }
 
   .hero-content p {
