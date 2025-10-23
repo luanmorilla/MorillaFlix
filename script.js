@@ -1,5 +1,5 @@
 /* =========================================================================
-   MORILLALFLIX — script.js (versão TURBO IA + multi-gêneros + mobile fix)
+   MORILLALFLIX — script.js (versão TURBO IA + multi-gêneros + avaliações)
    ========================================================================= */
 
 // ===== Seletores principais (DOM)
@@ -39,12 +39,13 @@ const tvGenres = {
   "Guerra e Política": 10768,"Faroeste": 37
 };
 
-// ===== Mapas auxiliares
 const normalize = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const movieGenresNorm = Object.fromEntries(Object.entries(movieGenres).map(([k,v])=>[normalize(k),v]));
 const tvGenresNorm    = Object.fromEntries(Object.entries(tvGenres).map(([k,v])=>[normalize(k),v]));
 
-// ===== HUMOR
+/* =========================================================================
+   HUMOR MAP
+   ========================================================================= */
 const MOOD_MAP = {
   "animado":      { genero: "Ação",            type: "movie" },
   "triste":       { genero: "Comédia",         type: "movie" },
@@ -63,7 +64,6 @@ const MOOD_MAP = {
 /* =========================================================================
    IA MULTI-GÊNEROS
    ========================================================================= */
-let iaContext = "";
 async function askAI(prompt){
   try{
     const context = `
@@ -149,7 +149,7 @@ function clearHeroLoading(){
 }
 
 /* =========================================================================
-   CARDS (Mobile Friendly)
+   CARDS
    ========================================================================= */
 function createCard(item,type){
   const title   = item.title || item.name || "Sem título";
@@ -191,7 +191,7 @@ function createCard(item,type){
 }
 
 /* =========================================================================
-   BUSCA (multi-gêneros)
+   BUSCA
    ========================================================================= */
 async function fetchByGenre(type,genreId){
   try{
@@ -425,6 +425,83 @@ if(moodButtonsWrap){
       }
     });
   });
+});
+
+/* =========================================================================
+   SISTEMA DE AVALIAÇÕES ⭐
+   ========================================================================= */
+const starContainer = document.getElementById('star-rating');
+if (starContainer) {
+  const stars = starContainer.querySelectorAll('span');
+  const comentarioInput = document.getElementById('comentario');
+  const enviarAvaliacaoBtn = document.getElementById('enviar-avaliacao');
+  const avaliacoesLista = document.getElementById('avaliacoes-lista');
+
+  let avaliacaoSelecionada = 0;
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      avaliacaoSelecionada = parseInt(star.getAttribute('data-value'));
+      stars.forEach(s => s.classList.remove('selected'));
+      for (let i = 0; i < avaliacaoSelecionada; i++) {
+        stars[i].classList.add('selected');
+      }
+    });
+  });
+
+  enviarAvaliacaoBtn.addEventListener('click', () => {
+    const comentario = comentarioInput.value.trim();
+    if (avaliacaoSelecionada === 0) {
+      alert('Por favor, selecione uma quantidade de estrelas.');
+      return;
+    }
+    if (comentario === '') {
+      alert('Por favor, escreva um comentário.');
+      return;
+    }
+
+    const novaAvaliacao = {
+      estrelas: avaliacaoSelecionada,
+      comentario: comentario,
+      data: new Date().toLocaleString('pt-BR')
+    };
+
+    let avaliacoes = JSON.parse(localStorage.getItem('avaliacoesMorillaFlix')) || [];
+    avaliacoes.unshift(novaAvaliacao);
+    localStorage.setItem('avaliacoesMorillaFlix', JSON.stringify(avaliacoes));
+
+    comentarioInput.value = '';
+    avaliacaoSelecionada = 0;
+    stars.forEach(s => s.classList.remove('selected'));
+    exibirAvaliacoes();
+  });
+
+  function exibirAvaliacoes() {
+    avaliacoesLista.innerHTML = '';
+    const avaliacoes = JSON.parse(localStorage.getItem('avaliacoesMorillaFlix')) || [];
+
+    if (avaliacoes.length === 0) {
+      avaliacoesLista.innerHTML = '<p style="text-align:center; color:#aaa;">Nenhuma avaliação ainda. Seja o primeiro! ⭐</p>';
+      return;
+    }
+
+    avaliacoes.forEach(avaliacao => {
+      const item = document.createElement('div');
+      item.classList.add('avaliacao-item');
+
+      const estrelas = '★'.repeat(avaliacao.estrelas) + '☆'.repeat(5 - avaliacao.estrelas);
+
+      item.innerHTML = `
+        <div class="estrelas">${estrelas}</div>
+        <p>${avaliacao.comentario}</p>
+        <small style="color:#777; font-size:0.8rem;">${avaliacao.data}</small>
+      `;
+
+      avaliacoesLista.appendChild(item);
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', exibirAvaliacoes);
 }
 
 /* =========================================================================
