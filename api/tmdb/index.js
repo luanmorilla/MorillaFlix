@@ -1,8 +1,8 @@
-// api/tmdb.js — versão aprimorada (filmes melhores e mais relevantes)
+// api/tmdb/index.js — versão aprimorada (filmes recentes e relevantes)
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // ===== CORS básico (para uso local e produção)
+  // ===== CORS (produção e local)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -27,13 +27,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Parâmetro 'type' deve ser 'movie' ou 'tv'." });
     }
 
-    // ===== Parâmetros refinados para resultados de qualidade
-    // Filtra apenas filmes populares e com muitas avaliações
+    // ===== Parâmetros otimizados para filmes modernos e populares
     const params = new URLSearchParams({
       language,
-      sort_by: "vote_average.desc",
+      sort_by: "popularity.desc",        // 🔥 prioriza relevância atual
       with_genres: genreId,
-      "vote_count.gte": "500", // evita filmes obscuros
+      "vote_average.gte": "6.5",         // nota mínima
+      "vote_count.gte": "200",           // evita filmes desconhecidos
+      "primary_release_date.gte": "2018-01-01", // 🔥 apenas filmes de 2018+
       include_adult: "false",
       page
     });
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ===== Requisição TMDB
+    // ===== Chamada TMDB
     const tmdbRes = await fetch(url, { headers });
     if (!tmdbRes.ok) {
       const text = await tmdbRes.text();
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
       item =>
         item &&
         (item.poster_path || item.backdrop_path) &&
-        item.vote_average >= 7
+        item.vote_average >= 6.5
     );
 
     return res.status(200).json({
