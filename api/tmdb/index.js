@@ -1,5 +1,5 @@
 // ============================================================
-// /api/tmdb/index.js — TMDb Inteligente PRO 2025 (versão corrigida)
+// /api/tmdb/index.js — TMDb Inteligente PRO 2025 (versão full compatível)
 // ============================================================
 
 import fetch from "node-fetch";
@@ -8,6 +8,7 @@ const cache = new Map(); // 🧠 Cache em memória (10 min)
 
 /**
  * 🔍 Descoberta inteligente de filmes/séries via TMDb
+ * Compatível com MorillaFlix PRO MAX IA 2.0
  */
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -29,28 +30,30 @@ export default async function handler(req, res) {
       orig_lang = "",
     } = req.query;
 
+    // ✅ Validações
     if (!genreId)
       return res.status(400).json({ error: "Parâmetro 'genreId' é obrigatório." });
 
     if (!["movie", "tv"].includes(type))
       return res.status(400).json({ error: "Parâmetro 'type' inválido." });
 
-    const cacheKey = `${type}_${genreId}_${page}_${language}_${year_from}`;
-    if (cache.has(cacheKey)) {
-      return res.status(200).json({ ...cache.get(cacheKey), cached: true });
-    }
-
-    // ===== Autenticação segura
     const TMDB_READ_TOKEN = process.env.TMDB_READ_TOKEN;
     const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
     if (!TMDB_READ_TOKEN && !TMDB_API_KEY) {
       return res.status(500).json({
-        error: "Configure TMDB_READ_TOKEN (v4) ou TMDB_API_KEY (v3) nas variáveis da Vercel.",
+        error:
+          "Configure TMDB_READ_TOKEN (v4) ou TMDB_API_KEY (v3) nas variáveis da Vercel.",
       });
     }
 
-    // ===== Parâmetros refinados
+    // 🧠 Chave de cache
+    const cacheKey = `${type}_${genreId}_${page}_${language}_${year_from}`;
+    if (cache.has(cacheKey)) {
+      return res.status(200).json({ ...cache.get(cacheKey), cached: true });
+    }
+
+    // ===== Monta parâmetros refinados
     const params = new URLSearchParams({
       language,
       include_adult: "false",
@@ -71,11 +74,7 @@ export default async function handler(req, res) {
     }
 
     if (orig_lang) params.set("with_original_language", orig_lang);
-
-    // ===== Inclui API Key (caso não use token)
-    if (TMDB_API_KEY) {
-      params.set("api_key", TMDB_API_KEY);
-    }
+    if (TMDB_API_KEY) params.set("api_key", TMDB_API_KEY);
 
     const url = `https://api.themoviedb.org/3/discover/${type}?${params.toString()}`;
 
@@ -83,19 +82,24 @@ export default async function handler(req, res) {
       ? { Authorization: `Bearer ${TMDB_READ_TOKEN}` }
       : {};
 
-    // ===== Busca com retry e timeout
+    // ===== Busca resiliente com timeout e retry
     const data = await fetchWithRetry(url, { headers }, 2, 10000);
     if (!data || !data.results) {
-      return res.status(502).json({ error: "Resposta inválida do TMDb", detalhes: data });
+      console.warn("⚠️ TMDb retornou dados inválidos:", data);
+      return res
+        .status(502)
+        .json({ error: "Resposta inválida do TMDb", detalhes: data });
     }
 
-    // ===== Filtro de curadoria e relevância
+    // ===== Filtro de curadoria e relevância dinâmica
     const now = new Date().getFullYear();
     const results = (data.results || [])
       .filter((it) => {
         const nota = it.vote_average ?? 0;
         const votos = it.vote_count ?? 0;
-        const ano = parseInt((it.release_date || it.first_air_date || "0000").slice(0, 4)) || 0;
+        const ano = parseInt(
+          (it.release_date || it.first_air_date || "0000").slice(0, 4)
+        );
         return (
           nota >= parseFloat(vote_min) &&
           votos >= 300 &&
@@ -109,18 +113,33 @@ export default async function handler(req, res) {
         relevance:
           (it.vote_average || 0) * 1.4 +
           Math.log10((it.vote_count || 1) + 1) +
-          (parseInt((it.release_date || it.first_air_date || "0000").slice(0, 4)) >= now - 3 ? 1.5 : 0),
+          (parseInt(
+            (it.release_date || it.first_air_date || "0000").slice(0, 4)
+          ) >= now - 3
+            ? 1.5
+            : 0),
       }))
       .sort((a, b) => b.relevance - a.relevance)
-      .slice(0, 15);
+      .slice(0, 20); // aumenta diversidade
 
+    // ===== Salva no cache (10 min)
     cache.set(cacheKey, { ...data, results });
     setTimeout(() => cache.delete(cacheKey), 10 * 60 * 1000);
 
-    return res.status(200).json({ ...data, results, filteredCount: results.length });
+    // ===== Retorno final
+    return res.status(200).json({
+      ...data,
+      results,
+      filteredCount: results.length,
+      genreId,
+      cached: false,
+    });
   } catch (err) {
     console.error("❌ Erro interno TMDB:", err);
-    return res.status(500).json({ error: "Falha interna na rota TMDb" });
+    return res.status(500).json({
+      error: "Falha interna na rota TMDb",
+      detalhes: err.message || err,
+    });
   }
 }
 
@@ -138,6 +157,7 @@ async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 10000)
       return await res.json();
     } catch (err) {
       clearTimeout(timeout);
+      console.warn(`Tentativa ${i + 1} falhou:`, err.message);
       if (i === retries) throw err;
       await new Promise((r) => setTimeout(r, 500 * (i + 1)));
     }
