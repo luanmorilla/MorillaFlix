@@ -735,7 +735,59 @@ async function search(text=null, { append=false } = {}){
     }catch(err){
       console.error('Boot error:', err);
     }
-  }
+  }/* =======================================
+   21) createCard — renderiza cada filme/série
+   ======================================= */
+function createCard(item, type = "movie") {
+  const card = document.createElement("div");
+  card.className = "movie-card";
+
+  const title = item.title || item.name || "Sem título";
+  const year =
+    (item.release_date || item.first_air_date || "").slice(0, 4) || "";
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : "–";
+
+  const posterUrl = item.poster_path
+    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+    : "https://via.placeholder.com/300x450?text=Sem+Imagem";
+
+  card.innerHTML = `
+    <img src="${posterUrl}" alt="${title}">
+    <div class="card-info">
+      <h4>${title}</h4>
+      <p class="year">${year}</p>
+      <p class="rating">⭐ ${rating}</p>
+      <div class="actions">
+        <button class="btn-trailer">🎬 Trailer</button>
+        <button class="btn-fav">${isFav(item.id) ? "★ Favorito" : "☆ Favorito"}</button>
+      </div>
+    </div>
+  `;
+
+  // 🔹 Trailer
+  const trailerBtn = card.querySelector(".btn-trailer");
+  trailerBtn.addEventListener("click", () => {
+    bumpPref((item.genre_ids || [])[0] || 0);
+    fetchTrailer(item.id, type, item.overview);
+  });
+
+  // 🔹 Favorito
+  const favBtn = card.querySelector(".btn-fav");
+  favBtn.addEventListener("click", () => {
+    toggleFav(item);
+    favBtn.textContent = isFav(item.id) ? "★ Favorito" : "☆ Favorito";
+  });
+
+  // 🔹 Ao clicar no card inteiro → abrir sinopse em toast
+  card.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("btn-trailer") && !e.target.classList.contains("btn-fav")) {
+      toast(item.overview || "Sem sinopse disponível.");
+    }
+  });
+
+  return card;
+}
+
   boot();
   
   /* =====================================================================
