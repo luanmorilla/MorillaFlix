@@ -1,10 +1,11 @@
 /* =========================================================================
-   MORILLALFLIX — script.js (PRO MAX INTELIGENTE 4.0 — IA TOTAL)
+   MORILLALFLIX — script.js (PRO MAX INTELIGENTE 4.2 — IA TOTAL + Timeout Fix)
    =========================================================================
    ✅ Compatível com /api/openai.js, /api/tmdb/index.js e /api/tmdb/trailer.js
    ✅ IA contextual (interpreta humor, gênero e emoção)
    ✅ Resultados 2018+ com nota alta e curadoria automática
    ✅ Correções de performance e UX fluida
+   ✅ Timeout ajustado (sem AbortError)
    ========================================================================= */
 
    const featuredBanner    = document.querySelector('.hero');
@@ -39,13 +40,14 @@
    function normalize(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
    
    /* ======================
-      💾 CACHE LOCAL
+      💾 CACHE LOCAL (Timeout Fix)
       ====================== */
    const cache=new Map();
-   async function fetchJSON(url,opt={},cfg={timeoutMs:15000,retries:1,clearCache:false}){
+   async function fetchJSON(url,opt={},cfg={timeoutMs:30000,retries:2,clearCache:false}){
      const key=`cache:${url}`;
      if(cfg.clearCache)cache.delete(key);
      if(cache.has(key))return cache.get(key);
+   
      for(let i=0;i<=cfg.retries;i++){
        const controller=new AbortController();
        const t=setTimeout(()=>controller.abort(),cfg.timeoutMs);
@@ -59,8 +61,9 @@
          return d;
        }catch(e){
          clearTimeout(t);
+         console.warn(`⚠️ Tentativa ${i+1} falhou em fetchJSON:`,e.message);
          if(i===cfg.retries)throw e;
-         await sleep(400*(i+1));
+         await sleep(800*(i+1));
        }
      }
    }
@@ -142,7 +145,7 @@
    async function fetchByGenre(type,genreId){
      try{
        const url=`/api/tmdb?type=${type}&genreId=${genreId}&page=1&language=${USER_LANG}&year_from=2018&vote_min=${MIN_VOTE_AVG}`;
-       const data=await fetchJSON(url,{}, {retries:1,clearCache:true});
+       const data=await fetchJSON(url,{}, {retries:2,clearCache:true});
        if(!data?.results)return [];
        return data.results.slice(0,MAX_PER_GENRE);
      }catch(e){
