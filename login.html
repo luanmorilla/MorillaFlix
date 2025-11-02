@@ -1,70 +1,140 @@
 <!DOCTYPE html>
-el('signin').addEventListener('click', async ()=>{
-try {
-const email = el('email').value.trim();
-const password = el('password').value;
-if(!email || !password) return showErr('Preencha e-mail e senha.');
-await signInWithEmailAndPassword(auth, email, password);
-location.replace(redirect);
-} catch (e) {
-showErr(mapError(e));
-}
-});
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrar | MorillaFlix</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0; background: radial-gradient(circle at top, #111, #000);
+      color: #fff; font-family: 'Poppins', sans-serif;
+    }
+    .login-box {
+      width: 350px; background: #111; border-radius: 12px; padding: 30px;
+      box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); text-align: center;
+    }
+    .login-box h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 2px; color: #e50914; margin-bottom: 10px;
+    }
+    input {
+      width: 100%; margin: 10px 0; padding: 12px;
+      border-radius: 8px; border: 1px solid #333;
+      background: #000; color: #fff; font-size: 0.95rem;
+    }
+    button {
+      width: 100%; padding: 12px; border: none; border-radius: 25px;
+      font-weight: 700; cursor: pointer; transition: .3s;
+      background: linear-gradient(90deg, #e50914, #ff4c4c); color: #fff;
+    }
+    button:hover { transform: scale(1.05); }
+    .google-btn {
+      margin-top: 10px; background: #fff; color: #000;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; font-weight: 600;
+    }
+    .google-btn img { width: 18px; height: 18px; }
+    p { font-size: .9rem; color: #aaa; margin-top: 15px; }
+    a { color: #e50914; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    #status { margin-top: 10px; color: #e50914; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>MORILLALFLIX</h2>
+    <input type="email" id="email" placeholder="E-mail" required />
+    <input type="password" id="password" placeholder="Senha" required />
+    <button id="signin">Entrar</button>
+    <button id="signup" style="margin-top:8px;background:#222;border:1px solid #e50914;">Cadastrar</button>
+    <button id="google" class="google-btn">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"> Entrar com Google
+    </button>
+    <p><a href="#" id="reset">Esqueci minha senha</a></p>
+    <p id="status"></p>
+  </div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { firebaseConfig } from './firebase-config.js';
 
-el('signup').addEventListener('click', async ()=>{
-try {
-const email = el('email').value.trim();
-const password = el('password').value;
-if(!email || !password) return showErr('Preencha e-mail e senha.');
-await createUserWithEmailAndPassword(auth, email, password);
-location.replace(redirect);
-} catch (e) {
-showErr(mapError(e));
-}
-});
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const redirect = "index.html";
 
+    // ===== UTIL =====
+    const el = id => document.getElementById(id);
+    const showErr = msg => el('status').textContent = msg;
 
-el('google').addEventListener('click', async ()=>{
-try {
-await signInWithPopup(auth, provider);
-location.replace(redirect);
-} catch (e) {
-showErr(mapError(e));
-}
-});
+    // ===== LOGIN =====
+    el('signin').addEventListener('click', async ()=>{
+      try {
+        const email = el('email').value.trim();
+        const password = el('password').value;
+        if(!email || !password) return showErr('Preencha e-mail e senha.');
+        await signInWithEmailAndPassword(auth, email, password);
+        location.replace(redirect);
+      } catch (e) { showErr(mapError(e)); }
+    });
 
+    // ===== CADASTRO =====
+    el('signup').addEventListener('click', async ()=>{
+      try {
+        const email = el('email').value.trim();
+        const password = el('password').value;
+        if(!email || !password) return showErr('Preencha e-mail e senha.');
+        await createUserWithEmailAndPassword(auth, email, password);
+        location.replace(redirect);
+      } catch (e) { showErr(mapError(e)); }
+    });
 
-el('reset').addEventListener('click', async ()=>{
-try{
-const email = el('email').value.trim();
-if(!email) return showErr('Digite seu e-mail para recuperar a senha.');
-await sendPasswordResetEmail(auth, email);
-alert('E-mail de recuperação enviado!');
-}catch(e){ showErr(mapError(e)); }
-});
+    // ===== GOOGLE LOGIN =====
+    el('google').addEventListener('click', async ()=>{
+      try {
+        await signInWithPopup(auth, provider);
+        location.replace(redirect);
+      } catch (e) { showErr(mapError(e)); }
+    });
 
+    // ===== RESET SENHA =====
+    el('reset').addEventListener('click', async (e)=>{
+      e.preventDefault();
+      try {
+        const email = el('email').value.trim();
+        if(!email) return showErr('Digite seu e-mail para recuperar a senha.');
+        await sendPasswordResetEmail(auth, email);
+        alert('✅ E-mail de recuperação enviado!');
+      } catch (e) { showErr(mapError(e)); }
+    });
 
-onAuthStateChanged(auth, (user)=>{
-// Se já está logado, manda direto
-if(user){ location.replace(redirect); }
-});
+    // ===== MONITORAR LOGIN EXISTENTE =====
+    onAuthStateChanged(auth, (user)=>{
+      if(user){ location.replace(redirect); }
+    });
 
-
-function mapError(e){
-const code = (e && e.code) || '';
-const friendly = {
-'auth/email-already-in-use':'Este e-mail já está em uso.',
-'auth/invalid-email':'E-mail inválido.',
-'auth/invalid-credential':'Credenciais inválidas.',
-'auth/missing-password':'Digite sua senha.',
-'auth/weak-password':'Senha fraca (mín. 6 caracteres).',
-'auth/user-not-found':'Usuário não encontrado.',
-'auth/wrong-password':'Senha incorreta.',
-'auth/popup-closed-by-user':'Janela do provedor foi fechada.'
-};
-return friendly[code] || 'Ops! Algo deu errado. Tente novamente.';
-}
-</script>
+    // ===== MAPEAR ERROS =====
+    function mapError(e){
+      const code = (e && e.code) || '';
+      const friendly = {
+        'auth/email-already-in-use':'Este e-mail já está em uso.',
+        'auth/invalid-email':'E-mail inválido.',
+        'auth/invalid-credential':'Credenciais inválidas.',
+        'auth/missing-password':'Digite sua senha.',
+        'auth/weak-password':'Senha fraca (mín. 6 caracteres).',
+        'auth/user-not-found':'Usuário não encontrado.',
+        'auth/wrong-password':'Senha incorreta.',
+        'auth/popup-closed-by-user':'A janela do Google foi fechada.'
+      };
+      return friendly[code] || 'Ops! Algo deu errado. Tente novamente.';
+    }
+  </script>
 </body>
 </html>
