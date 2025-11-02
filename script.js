@@ -1,9 +1,11 @@
 /* =========================================================================
-   MORILLALFLIX — script.js (PRO MAX FINAL 2025 — Studio Grade + IA FIX 2.2.1)
+   MORILLALFLIX — script.js (PRO MAX FINAL 2025 — IA INTELIGENTE 3.0)
    =========================================================================
-   Correções:
-   ✅ createCard visível globalmente
-   ✅ Proteção contra undefined em fetchByGenre (TMDB)
+   Atualizações desta versão:
+   ✅ IA ultra precisa (interpretação contextual real)
+   ✅ Filmes 2018+ com nota >= 7.2 e 500+ votos
+   ✅ Gêneros respeitados com fidelidade
+   ✅ Proteções de erro e performance aprimoradas
    ✅ Nenhuma função visual removida
    ========================================================================= */
 
@@ -26,13 +28,13 @@
    const AFFILIATE_LINK    = "https://ev.braip.com/ref?pv=provwxxd&af=afi9em9m17";
    const USER_LANG         = (navigator.language || 'pt-BR').toLowerCase().includes('pt') ? 'pt-BR' : 'en-US';
    const MAX_PER_GENRE     = 12;
-   const MIN_VOTE_AVG      = 7.0;
-   const MIN_VOTE_COUNT    = 300;
-   const MIN_YEAR          = 2005;
-   const RECENT_BOOST      = 2018;
+   const MIN_VOTE_AVG      = 7.2;
+   const MIN_VOTE_COUNT    = 500;
+   const MIN_YEAR          = 2018;
+   const RECENT_BOOST      = 2020;
    
    /* ======================
-      Utilitários básicos
+      🧩 UTILITÁRIOS
       ====================== */
    function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
    function saveJSON(k,o){try{localStorage.setItem(k,JSON.stringify(o));}catch{}}
@@ -43,11 +45,12 @@
    function normalize(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
    
    /* ======================
-      Cache e fetch seguro
+      🔄 CACHE E FETCH
       ====================== */
    const cache=new Map();
-   async function fetchJSON(url,opt={},cfg={timeoutMs:12000,retries:1,clearCache:false}){
-     const key=`cache:${url}`;if(cfg.clearCache)cache.delete(key);
+   async function fetchJSON(url,opt={},cfg={timeoutMs:18000,retries:2,clearCache:false}){
+     const key=`cache:${url}`;
+     if(cfg.clearCache)cache.delete(key);
      if(cache.has(key))return cache.get(key);
      for(let i=0;i<=cfg.retries;i++){
        const controller=new AbortController();
@@ -63,60 +66,89 @@
        }catch(e){
          clearTimeout(t);
          if(i===cfg.retries)throw e;
-         await sleep(400*(i+1));
+         await sleep(300*(i+1));
        }
      }
    }
    
    /* ======================
-      IA e heurística
+      🧠 IA INTERPRETATIVA
       ====================== */
    async function askAI(prompt){
-     const ctx=`Responda no formato: Genero1,Genero2|Filme ou Série`;
+     const contexto = `
+   Você é a inteligência oficial do MorillaFlix.
+   Analise o texto do usuário e retorne SOMENTE neste formato:
+   
+   Genero1,Genero2|Filme ou Série
+   
+   Regras:
+   - Sempre respeite gêneros reais (Ação, Comédia, Drama, Terror, Romance, Ficção científica, Animação, Mistério, Aventura).
+   - Se o usuário mencionar "série", troque o tipo para Série.
+   - Se ele falar apenas um gênero, devolva apenas esse gênero.
+   - Priorize filmes modernos e bem avaliados (ano >= 2018, nota >= 7).
+   - Nunca adicione explicações, apenas o formato correto.
+   
+   Usuário: ${prompt}
+     `.trim();
+   
      try{
-       const r=await fetchJSON('/api/openai',{
+       const r = await fetchJSON('/api/openai',{
          method:'POST',
          headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({prompt:`${ctx}\nUsuário: ${prompt}`})
+         body:JSON.stringify({prompt: contexto})
        },{clearCache:true});
-       let raw=(r&&r.result)?String(r.result).trim():"";
-       if(raw.includes('|'))return raw;
+   
+       let raw = (r && r.result) ? String(r.result).trim() : "";
+       if(raw.includes('|')) return raw;
        return heuristicParse(prompt);
-     }catch{return heuristicParse(prompt);}
+     }catch{
+       return heuristicParse(prompt);
+     }
    }
+   
    function heuristicParse(txt){
      const n=normalize(txt);
      let t=n.includes('série')||n.includes('serie')?'Série':'Filme';
-     const found=Object.keys(movieGenresNorm).filter(k=>n.includes(k));
-     if(found.length){
-       const g=found.map(k=>Object.keys(movieGenres).find(K=>normalize(K)===k)||k).join(',');
-       return`${g}|${t}`;
-     }
-     return`Ação,Comédia|${t}`;
+     const all=["ação","aventura","comédia","drama","terror","romance","ficção","animação","mistério"];
+     const f=all.filter(g=>n.includes(g));
+     return `${f.length?f.join(','):'Ação,Comédia'}|${t}`;
    }
    
    /* ======================
-      Dicionários de gênero
+      🎬 GÊNEROS
       ====================== */
-   const movieGenres={"Ação":28,"Aventura":12,"Animação":16,"Comédia":35,"Crime":80,"Drama":18,"Terror":27,"Romance":10749,"Ficção científica":878};
-   const tvGenres={"Drama":18,"Comédia":35,"Crime":80,"Reality":10764,"Ficção científica e Fantasia":10765};
+   const movieGenres={
+     "ação":28,"aventura":12,"animação":16,"comédia":35,"crime":80,
+     "documentário":99,"drama":18,"família":10751,"fantasia":14,
+     "história":36,"terror":27,"música":10402,"mistério":9648,
+     "romance":10749,"ficção científica":878,"thriller":53
+   };
+   const tvGenres={
+     "drama":18,"comédia":35,"crime":80,"reality":10764,"ficção científica e fantasia":10765
+   };
    const movieGenresNorm=Object.fromEntries(Object.entries(movieGenres).map(([k,v])=>[normalize(k),v]));
    const tvGenresNorm=Object.fromEntries(Object.entries(tvGenres).map(([k,v])=>[normalize(k),v]));
    const allMovieGenreKeysNorm=Object.keys(movieGenresNorm);
    
    /* ======================
-      Filtros de qualidade
+      🎞️ FILTROS DE QUALIDADE
       ====================== */
    function qualityFilter(list){
      return list.filter(x=>{
        const y=parseYear(x);
-       return x.poster_path && x.vote_average>=MIN_VOTE_AVG && (x.vote_count||0)>=MIN_VOTE_COUNT && (y===0||y>=MIN_YEAR);
+       return x.poster_path &&
+              (x.vote_average||0)>=MIN_VOTE_AVG &&
+              (x.vote_count||0)>=MIN_VOTE_COUNT &&
+              y>=MIN_YEAR;
+     }).sort((a,b)=>{
+       const scoreA = (a.vote_average*1.5) + (parseYear(a)/10000);
+       const scoreB = (b.vote_average*1.5) + (parseYear(b)/10000);
+       return scoreB - scoreA;
      });
    }
-   function rerank(list){return[...list].sort(()=>Math.random()-.5);}
    
    /* ======================
-      CREATE CARD (fix)
+      🧩 CREATE CARD
       ====================== */
    function createCard(item,type){
      const title=item.title||item.name||"Sem título";
@@ -148,41 +180,31 @@
      el.querySelector('.trailer-btn').addEventListener('click',()=>fetchTrailer(item.id,type,overview));
      return el;
    }
-   // ✅ garante visibilidade global
    window.createCard=createCard;
    
    /* ======================
-      Busca TMDB protegida
+      🔎 TMDB FETCH INTELIGENTE
       ====================== */
    async function fetchByGenre(type,genreId,page){
-     const randomPage=Math.floor(Math.random()*3)+1;
-     const finalPage=page||randomPage;
-     const url=`/api/tmdb?type=${type}&genreId=${genreId}&page=${finalPage}&language=${encodeURIComponent(USER_LANG)}&sort_by=popularity.desc`;
-     let data;
+     const url=`/api/tmdb?type=${type}&genreId=${genreId}&page=${page||1}&language=${encodeURIComponent(USER_LANG)}&sort_by=vote_average.desc&include_adult=false`;
      try{
-       data=await fetchJSON(url,{}, {retries:1,clearCache:true});
+       const data=await fetchJSON(url,{}, {retries:1,clearCache:true});
+       if(!data||!Array.isArray(data.results)){console.warn("TMDB inválido:",data);return [];}
+       return qualityFilter(data.results).slice(0,MAX_PER_GENRE);
      }catch(e){
        console.warn("Erro ao buscar TMDB:",e);
        return [];
      }
-     // ✅ Protege contra respostas inválidas
-     if(!data || !Array.isArray(data.results)){
-       console.warn("TMDB retornou resposta inválida:",data);
-       return [];
-     }
-     const filtered=qualityFilter(data.results);
-     const ranked=rerank(filtered);
-     return ranked.slice(0,MAX_PER_GENRE);
    }
    
    /* ======================
-      Pesquisa principal
+      🔍 PESQUISA PRINCIPAL
       ====================== */
    let lastQuery=null,currentType='movie';
    async function search(txt=null){
      const input=(txt??searchInput.value).trim();
      if(!input)return;
-     resultsContainer.innerHTML=`<div class="loading-container"><div class="spinner"></div><span>Carregando…</span></div>`;
+     resultsContainer.innerHTML=`<div class="loading-container"><div class="spinner"></div><span>Buscando filmes recentes e bem avaliados...</span></div>`;
      const ai=await askAI(input);
      let[gRaw,tRaw]=(ai||'').split('|').map(s=>(s||'').trim());
      let generos=(gRaw||"").split(',').map(g=>g.trim()).filter(Boolean);
@@ -190,7 +212,8 @@
      const saidSerie=n.includes('série')||n.includes('serie');
      const isGenre=allMovieGenreKeysNorm.some(k=>n.includes(k));
      let type='movie';
-     if(saidSerie&&!isGenre)type='tv';else if(tRaw)type=(tRaw.toLowerCase().includes('série')||tRaw.toLowerCase().includes('serie'))?'tv':'movie';
+     if(saidSerie&&!isGenre)type='tv';
+     else if(tRaw)type=(tRaw.toLowerCase().includes('série')||tRaw.toLowerCase().includes('serie'))?'tv':'movie';
      if(!generos.length){generos=['Ação'];}
    
      lastQuery=input;currentType=type;
@@ -201,14 +224,20 @@
        const items=await fetchByGenre(type,gid);
        all.push(...items);
      }
+   
      const unique=[...new Map(all.map(i=>[i.id,i])).values()];
      resultsContainer.innerHTML="";
+     if(!unique.length){
+       resultsTitle.textContent="Nenhum resultado encontrado 😕";
+       return;
+     }
      unique.forEach(it=>resultsContainer.appendChild(createCard(it,type)));
-     resultsTitle.textContent=`Resultados (${unique.length})`;
+     resultsTitle.textContent=`Melhores resultados (${unique.length})`;
+     window.scrollTo({top:resultsContainer.offsetTop-70,behavior:'smooth'});
    }
    
    /* ======================
-      Trailer modal
+      🎬 TRAILER MODAL
       ====================== */
    function openTrailer(k){
      const m=document.getElementById('trailer-modal');
@@ -221,8 +250,7 @@
      const m=document.getElementById('trailer-modal');
      const i=document.getElementById('trailer-video');
      if(!m||!i)return;
-     i.src='';
-     m.style.display='none';
+     i.src='';m.style.display='none';
    }
    document.getElementById('close-modal')?.addEventListener('click',closeTrailer);
    document.getElementById('trailer-modal')?.addEventListener('click',e=>{if(e.target.id==='trailer-modal')closeTrailer();});
@@ -237,14 +265,20 @@
    function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=USER_LANG;u.rate=1;speechSynthesis.speak(u);}catch{}}
    
    /* ======================
-      Eventos
+      ⚙️ EVENTOS
       ====================== */
    searchButton?.addEventListener('click',()=>search());
    searchInput?.addEventListener('keyup',e=>{if(e.key==='Enter')search();});
-   surpriseButton?.addEventListener('click',()=>{const arr=Object.keys(movieGenres);const g=arr[Math.floor(Math.random()*arr.length)];search(g);});
+   surpriseButton?.addEventListener('click',()=>{
+     const arr=Object.keys(movieGenres);
+     const g=arr[Math.floor(Math.random()*arr.length)];
+     search(g);
+   });
    
    /* ======================
-      Inicialização
+      🚀 BOOT
       ====================== */
-   window.addEventListener('DOMContentLoaded',()=>{resultsTitle.textContent='Top do momento';});
+   window.addEventListener('DOMContentLoaded',()=>{
+     resultsTitle.textContent='Filmes recentes e bem avaliados 🎬';
+   });
    
