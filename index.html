@@ -3,17 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MorillaFlix</title>
+  <title>MorillaFlix — IA de Filmes</title>
+
+  <!-- SEO e Metadados -->
+  <meta name="description" content="MorillaFlix: encontre o filme perfeito com ajuda da Inteligência Artificial. Descubra por humor, gênero ou emoção — gratuito e intuitivo!" />
+  <meta name="theme-color" content="#e50914" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5977/5977590.png" />
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Pré-carregamento para performance -->
+  <link rel="preconnect" href="https://www.gstatic.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
 </head>
 
 <body>
   <!-- ===== HEADER ===== -->
-  <header>
+  <header id="main-header">
     <h1 class="logo" aria-label="MorillaFlix">
       <span class="gorilla" aria-hidden="true">🦍</span>
       <span class="logo-text">MORILLALFLIX</span>
     </h1>
+
     <nav class="navbar" aria-label="Navegação principal">
       <ul>
         <li><a href="#inicio" data-nav="inicio" class="active">Início</a></li>
@@ -27,7 +41,7 @@
   </header>
 
   <!-- ===== HERO ===== -->
-  <section class="hero" id="inicio" aria-label="Destaque"></section>
+  <section class="hero" id="inicio" aria-label="Filme em destaque"></section>
 
   <!-- ===== HERO INFO ===== -->
   <section class="hero-info">
@@ -56,7 +70,7 @@
 
   <!-- ===== PESQUISA ===== -->
   <section class="search-section" aria-label="Pesquisar por gênero">
-    <input id="search-input" type="text" placeholder="Digite o gênero (Ação, Comédia…)" />
+    <input id="search-input" type="text" placeholder="Digite o gênero (Ação, Comédia…)" aria-label="Campo de busca" />
     <div class="buttons">
       <button id="search-button" class="btn btn-primary">Buscar</button>
       <button id="surprise-button" class="btn btn-secondary">Surpreenda-me</button>
@@ -64,29 +78,29 @@
   </section>
 
   <!-- ===== GÊNEROS ===== -->
-  <section id="generos" class="generos-section" aria-label="Lista de gêneros">
+  <section id="generos" class="generos-section" aria-label="Lista de gêneros disponíveis">
     <h3>🎭 Todos os Gêneros</h3>
     <div id="generos-container" class="generos-container"></div>
   </section>
 
   <!-- ===== RESULTADOS ===== -->
-  <section class="results-section" aria-label="Resultados">
-    <h3>Top do momento</h3>
+  <section class="results-section" aria-label="Resultados de filmes">
+    <h3>🔥 Top do momento</h3>
     <div id="results" class="results-grid"></div>
   </section>
 
   <!-- ===== SOBRE ===== -->
   <section id="sobre" class="sobre-section" aria-label="Sobre o MorillaFlix">
     <h3>📽️ Sobre</h3>
-    <p>O MorillaFlix usa Inteligência Artificial para interpretar seu humor e seus pedidos,
-      transformando isso em gêneros e buscas na TMDb. Assim, você recebe recomendações certeiras
-      sem esforço.</p>
-    <p>Projeto feito com ❤️ para cinéfilos.</p>
+    <p>O MorillaFlix usa Inteligência Artificial para entender seu humor e pedidos,
+       transformando isso em recomendações certeiras na base da TMDb.</p>
+    <p>Projeto criado com ❤️ para quem ama cinema de verdade.</p>
   </section>
 
   <!-- ===== AVALIAÇÕES ===== -->
   <section id="avaliacoes" class="avaliacoes-section" aria-label="Avaliações dos usuários">
     <h3>⭐ Avaliações dos Usuários</h3>
+
     <div class="avaliacao-form">
       <div class="star-rating" id="star-rating">
         <span data-value="1">★</span>
@@ -95,9 +109,11 @@
         <span data-value="4">★</span>
         <span data-value="5">★</span>
       </div>
-      <textarea id="comentario" placeholder="Deixe seu comentário..." maxlength="200"></textarea>
+
+      <textarea id="comentario" placeholder="Deixe seu comentário..." maxlength="200" aria-label="Comentário do usuário"></textarea>
       <button id="enviar-avaliacao" class="btn btn-primary">Enviar Avaliação</button>
     </div>
+
     <div class="avaliacoes-lista" id="avaliacoes-lista"></div>
   </section>
 
@@ -105,13 +121,16 @@
   <div id="trailer-modal" class="trailer-modal" aria-hidden="true">
     <div class="trailer-content" role="dialog" aria-label="Trailer">
       <button id="close-modal" class="close-btn" aria-label="Fechar">×</button>
-      <iframe id="trailer-video" frameborder="0" allowfullscreen></iframe>
+      <iframe id="trailer-video" frameborder="0" allowfullscreen loading="lazy"></iframe>
     </div>
   </div>
 
-  <footer>© 2025 MorillaFlix</footer>
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <p>© 2025 <strong>MorillaFlix</strong> — IA que entende seu humor 🎬</p>
+  </footer>
 
-  <!-- ===== AUTH GUARD ===== -->
+  <!-- ===== FIREBASE AUTH ===== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -129,22 +148,26 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // 🔒 redireciona pra login se não estiver logado
+    // 🔒 Protege página
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        location.replace("login.html");
-      }
+      if (!user) location.replace("login.html");
     });
 
-    // 🔓 botão sair
+    // 🔓 Logout
     document.getElementById("logout-btn").addEventListener("click", async () => {
       await signOut(auth);
       location.replace("login.html");
+    });
+
+    // 🔽 Efeito header fixo
+    window.addEventListener("scroll", () => {
+      const header = document.getElementById("main-header");
+      if (window.scrollY > 30) header.classList.add("scrolled");
+      else header.classList.remove("scrolled");
     });
   </script>
 
   <!-- ===== APP SCRIPT ===== -->
   <script type="module" src="script.js"></script>
-
 </body>
 </html>
