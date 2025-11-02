@@ -1,15 +1,11 @@
 // ============================================================
-// /api/tmdb/index.js — TMDb Inteligente PRO 2025 (versão full compatível)
+// /api/tmdb/index.js — TMDb Inteligente SUPREMO 4.1
 // ============================================================
 
 import fetch from "node-fetch";
 
-const cache = new Map(); // 🧠 Cache em memória (10 min)
+const cache = new Map();
 
-/**
- * 🔍 Descoberta inteligente de filmes/séries via TMDb
- * Compatível com MorillaFlix PRO MAX IA 2.0
- */
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -25,75 +21,54 @@ export default async function handler(req, res) {
       page = "1",
       language = "pt-BR",
       region = "BR",
-      year_from = "2015",
-      vote_min = "7.0",
-      orig_lang = "",
+      year_from = "2018",
+      vote_min = "7.2",
     } = req.query;
 
-    // ✅ Validações
     if (!genreId)
       return res.status(400).json({ error: "Parâmetro 'genreId' é obrigatório." });
-
-    if (!["movie", "tv"].includes(type))
-      return res.status(400).json({ error: "Parâmetro 'type' inválido." });
 
     const TMDB_READ_TOKEN = process.env.TMDB_READ_TOKEN;
     const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
     if (!TMDB_READ_TOKEN && !TMDB_API_KEY) {
       return res.status(500).json({
-        error:
-          "Configure TMDB_READ_TOKEN (v4) ou TMDB_API_KEY (v3) nas variáveis da Vercel.",
+        error: "Configure TMDB_READ_TOKEN ou TMDB_API_KEY nas variáveis.",
       });
     }
 
-    // 🧠 Chave de cache
-    const cacheKey = `${type}_${genreId}_${page}_${language}_${year_from}`;
-    if (cache.has(cacheKey)) {
+    const cacheKey = `${type}_${genreId}_${page}_${language}`;
+    if (cache.has(cacheKey))
       return res.status(200).json({ ...cache.get(cacheKey), cached: true });
-    }
 
-    // ===== Monta parâmetros refinados
     const params = new URLSearchParams({
       language,
       include_adult: "false",
       page,
       with_genres: String(genreId),
-      sort_by: "popularity.desc",
+      sort_by: "vote_average.desc",
       "vote_average.gte": String(vote_min),
-      "vote_count.gte": "300",
+      "vote_count.gte": "500",
       region,
-      watch_region: region,
-      with_watch_monetization_types: "flatrate|free|ads",
     });
 
-    if (type === "movie") {
-      params.set("primary_release_date.gte", `${year_from}-01-01`);
-    } else {
-      params.set("first_air_date.gte", `${year_from}-01-01`);
-    }
-
-    if (orig_lang) params.set("with_original_language", orig_lang);
+    params.set(
+      type === "movie" ? "primary_release_date.gte" : "first_air_date.gte",
+      `${year_from}-01-01`
+    );
     if (TMDB_API_KEY) params.set("api_key", TMDB_API_KEY);
 
     const url = `https://api.themoviedb.org/3/discover/${type}?${params.toString()}`;
-
     const headers = TMDB_READ_TOKEN
       ? { Authorization: `Bearer ${TMDB_READ_TOKEN}` }
       : {};
 
-    // ===== Busca resiliente com timeout e retry
     const data = await fetchWithRetry(url, { headers }, 2, 10000);
-    if (!data || !data.results) {
-      console.warn("⚠️ TMDb retornou dados inválidos:", data);
-      return res
-        .status(502)
-        .json({ error: "Resposta inválida do TMDb", detalhes: data });
-    }
+    if (!data || !data.results)
+      return res.status(502).json({ error: "Resposta inválida do TMDb" });
 
-    // ===== Filtro de curadoria e relevância dinâmica
     const now = new Date().getFullYear();
-    const results = (data.results || [])
+    const results = data.results
       .filter((it) => {
         const nota = it.vote_average ?? 0;
         const votos = it.vote_count ?? 0;
@@ -102,10 +77,10 @@ export default async function handler(req, res) {
         );
         return (
           nota >= parseFloat(vote_min) &&
-          votos >= 300 &&
+          votos >= 500 &&
           ano >= parseInt(year_from) &&
           ano <= now &&
-          (it.poster_path || it.backdrop_path)
+          it.poster_path
         );
       })
       .map((it) => ({
@@ -113,39 +88,21 @@ export default async function handler(req, res) {
         relevance:
           (it.vote_average || 0) * 1.4 +
           Math.log10((it.vote_count || 1) + 1) +
-          (parseInt(
-            (it.release_date || it.first_air_date || "0000").slice(0, 4)
-          ) >= now - 3
-            ? 1.5
-            : 0),
+          (parseInt(it.release_date?.slice(0, 4) || 0) >= now - 3 ? 1.5 : 0),
       }))
       .sort((a, b) => b.relevance - a.relevance)
-      .slice(0, 20); // aumenta diversidade
+      .slice(0, 20);
 
-    // ===== Salva no cache (10 min)
     cache.set(cacheKey, { ...data, results });
     setTimeout(() => cache.delete(cacheKey), 10 * 60 * 1000);
 
-    // ===== Retorno final
-    return res.status(200).json({
-      ...data,
-      results,
-      filteredCount: results.length,
-      genreId,
-      cached: false,
-    });
+    return res.status(200).json({ results });
   } catch (err) {
-    console.error("❌ Erro interno TMDB:", err);
-    return res.status(500).json({
-      error: "Falha interna na rota TMDb",
-      detalhes: err.message || err,
-    });
+    console.error("❌ Erro TMDB:", err);
+    return res.status(500).json({ error: "Erro interno TMDb" });
   }
 }
 
-/**
- * 🧠 fetch resiliente com retry e timeout
- */
 async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 10000) {
   for (let i = 0; i <= retries; i++) {
     const controller = new AbortController();
@@ -157,7 +114,6 @@ async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 10000)
       return await res.json();
     } catch (err) {
       clearTimeout(timeout);
-      console.warn(`Tentativa ${i + 1} falhou:`, err.message);
       if (i === retries) throw err;
       await new Promise((r) => setTimeout(r, 500 * (i + 1)));
     }
