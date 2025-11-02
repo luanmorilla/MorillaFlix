@@ -340,3 +340,27 @@ footer {
     gap: 10px;
   }
 }
+
+/* ===== AUTH (conta) ===== */
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pill {
+  background: linear-gradient(90deg, #e50914, #ff4c4c);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pill-outline {
+  background: #1a1a1a;
+  border: 1px solid #e50914;
+  color: #fff;
+}
+@media (max-width: 768px) {
+  .auth-controls { margin-top: 8px; }
+}

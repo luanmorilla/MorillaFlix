@@ -6,6 +6,8 @@
   <title>MorillaFlix</title>
   <link rel="stylesheet" href="style.css" />
   <script defer src="script.js"></script>
+  <!-- 🔐 Importa o guard de autenticação -->
+  <script type="module" defer src="auth.js"></script>
 </head>
 <body>
   <!-- ===== HEADER ===== -->
@@ -14,6 +16,7 @@
       <span class="gorilla" aria-hidden="true">🦍</span>
       <span class="logo-text">MORILLALFLIX</span>
     </h1>
+
     <nav class="navbar" aria-label="Navegação principal">
       <ul>
         <li><a href="#inicio" data-nav="inicio" class="active">Início</a></li>
@@ -23,6 +26,12 @@
         <li><a href="#avaliacoes" data-nav="avaliacoes">Avaliações</a></li>
       </ul>
     </nav>
+
+    <!-- 🔑 Controles de autenticação -->
+    <div class="auth-controls">
+      <button id="account-btn" class="pill">Minha conta</button>
+      <button id="logout-btn" class="pill pill-outline" style="display:none">Sair</button>
+    </div>
   </header>
 
   <!-- ===== HERO (Imagem do destaque) ===== -->

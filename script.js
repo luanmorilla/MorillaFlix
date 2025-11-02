@@ -148,7 +148,7 @@ function clearHeroLoading(){
 }
 
 /* =========================================================================
-   CARDS (Mobile Friendly)
+   CARDS
    ========================================================================= */
 function createCard(item,type){
   const title   = item.title || item.name || "Sem título";
@@ -175,7 +175,6 @@ function createCard(item,type){
     </div>
   `;
 
-  // Botão Leia mais
   const btn = el.querySelector('.toggle-overview');
   const txt = el.querySelector('.overview');
   let expanded = false;
@@ -190,7 +189,7 @@ function createCard(item,type){
 }
 
 /* =========================================================================
-   BUSCA (multi-gêneros)
+   BUSCA
    ========================================================================= */
 async function fetchByGenre(type,genreId){
   try{
@@ -264,7 +263,7 @@ function renderGeneros(){
 }
 
 /* =========================================================================
-   BANNER — Destaques
+   BANNER
    ========================================================================= */
 let featuredIndex = 0;
 let featuredMovies = [];
@@ -335,7 +334,7 @@ heroTrailerBtn.addEventListener('click',()=>{
 });
 
 /* =========================================================================
-   TRAILER (Modal)
+   TRAILER
    ========================================================================= */
 function openTrailer(key){
   const modal = document.getElementById('trailer-modal');
@@ -443,3 +442,33 @@ surpriseButton.addEventListener('click',()=>{
 renderGeneros();
 resultsTitle.textContent = 'Top do momento';
 loadFeatured();
+
+/* =========================================================================
+   🔐 LOGIN CHECK (Firebase)
+   ========================================================================= */
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { firebaseConfig } from './firebase-config.js';
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const accountBtn = document.getElementById('account-btn');
+const logoutBtn = document.getElementById('logout-btn');
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // Usuário logado
+    accountBtn.textContent = user.email.split('@')[0];
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    // Sem login → redireciona para a tela de login
+    window.location.href = "login.html";
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  signOut(auth).then(() => {
+    window.location.href = "login.html";
+  });
+});

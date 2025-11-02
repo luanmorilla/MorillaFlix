@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+el('signin').addEventListener('click', async ()=>{
+try {
+const email = el('email').value.trim();
+const password = el('password').value;
+if(!email || !password) return showErr('Preencha e-mail e senha.');
+await signInWithEmailAndPassword(auth, email, password);
+location.replace(redirect);
+} catch (e) {
+showErr(mapError(e));
+}
+});
+
+
+el('signup').addEventListener('click', async ()=>{
+try {
+const email = el('email').value.trim();
+const password = el('password').value;
+if(!email || !password) return showErr('Preencha e-mail e senha.');
+await createUserWithEmailAndPassword(auth, email, password);
+location.replace(redirect);
+} catch (e) {
+showErr(mapError(e));
+}
+});
+
+
+el('google').addEventListener('click', async ()=>{
+try {
+await signInWithPopup(auth, provider);
+location.replace(redirect);
+} catch (e) {
+showErr(mapError(e));
+}
+});
+
+
+el('reset').addEventListener('click', async ()=>{
+try{
+const email = el('email').value.trim();
+if(!email) return showErr('Digite seu e-mail para recuperar a senha.');
+await sendPasswordResetEmail(auth, email);
+alert('E-mail de recuperação enviado!');
+}catch(e){ showErr(mapError(e)); }
+});
+
+
+onAuthStateChanged(auth, (user)=>{
+// Se já está logado, manda direto
+if(user){ location.replace(redirect); }
+});
+
+
+function mapError(e){
+const code = (e && e.code) || '';
+const friendly = {
+'auth/email-already-in-use':'Este e-mail já está em uso.',
+'auth/invalid-email':'E-mail inválido.',
+'auth/invalid-credential':'Credenciais inválidas.',
+'auth/missing-password':'Digite sua senha.',
+'auth/weak-password':'Senha fraca (mín. 6 caracteres).',
+'auth/user-not-found':'Usuário não encontrado.',
+'auth/wrong-password':'Senha incorreta.',
+'auth/popup-closed-by-user':'Janela do provedor foi fechada.'
+};
+return friendly[code] || 'Ops! Algo deu errado. Tente novamente.';
+}
+</script>
+</body>
+</html>
