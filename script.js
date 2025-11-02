@@ -180,7 +180,7 @@ function createCard(item,type){
   let expanded = false;
   btn.addEventListener('click',()=>{
     expanded = !expanded;
-    txt.style.maxHeight = expanded ? 'none' : '60px';
+    txt.style.maxHeight = expanded ? 'none' : '84px';
     btn.textContent = expanded ? 'Leia menos' : 'Leia mais';
   });
 
@@ -189,13 +189,28 @@ function createCard(item,type){
 }
 
 /* =========================================================================
-   BUSCA
+   BUSCA — **melhorada**
    ========================================================================= */
 async function fetchByGenre(type,genreId){
   try{
-    const page = Math.floor(Math.random()*10)+1;
+    // Páginas mais populares (1 a 3)
+    const page = Math.floor(Math.random()*3)+1;
     const data = await fetchJSON(`/api/tmdb?type=${type}&genreId=${genreId}&page=${page}`, {}, {retries:1});
-    return data.results || [];
+    let results = data.results || [];
+
+    // Mantém só os bons e com imagem
+    results = results.filter(x =>
+      x &&
+      (x.poster_path || x.backdrop_path) &&
+      typeof x.vote_average === 'number' &&
+      x.vote_average >= 7
+    );
+
+    // Ordena do melhor pro pior
+    results.sort((a,b)=> (b.vote_average||0) - (a.vote_average||0));
+
+    // Retorna top 12
+    return results.slice(0,12);
   }catch(e){
     console.error('fetchByGenre', e);
     return [];
@@ -229,6 +244,7 @@ async function search(text=null){
     allResults.push(...items);
   }
 
+  // Únicos
   const unique = [];
   const seen = new Set();
   for(const item of allResults){
@@ -263,7 +279,7 @@ function renderGeneros(){
 }
 
 /* =========================================================================
-   BANNER
+   BANNER — **melhorado**
    ========================================================================= */
 let featuredIndex = 0;
 let featuredMovies = [];
@@ -275,18 +291,22 @@ async function loadFeatured(){
     showHeroLoading();
     const genreIds = Object.values(movieGenres);
     const picks = [];
+
     for(let i=0; i<6; i++){
       const gid = genreIds[Math.floor(Math.random()*genreIds.length)];
-      const pg  = Math.floor(Math.random()*6)+1;
+      const pg  = Math.floor(Math.random()*3)+1; // páginas 1–3
       try{
         const data = await fetchJSON(`/api/tmdb?type=movie&genreId=${gid}&page=${pg}`, {}, {retries:1});
-        const withBackdrop = (data.results || []).filter(x=>x && x.backdrop_path);
+        const withBackdrop = (data.results || []).filter(x =>
+          x && x.backdrop_path && typeof x.vote_average === 'number' && x.vote_average >= 7
+        );
         picks.push(...withBackdrop);
-        if(picks.length >= 12) break;
+        if(picks.length >= 18) break;
       }catch(err){
         console.warn('Tentativa de banner falhou (continua):', err);
       }
     }
+
     featuredMovies = shuffleArray(picks).slice(0, 12);
     if(featuredMovies.length === 0){
       clearHeroLoading();
@@ -298,6 +318,7 @@ async function loadFeatured(){
     }
     showFeaturedBanner();
     clearHeroLoading();
+
     if(bannerTimer) clearInterval(bannerTimer);
     bannerTimer = setInterval(()=>{
       featuredIndex = (featuredIndex + 1) % featuredMovies.length;
@@ -443,32 +464,7 @@ renderGeneros();
 resultsTitle.textContent = 'Top do momento';
 loadFeatured();
 
-/* =========================================================================
-   🔐 LOGIN CHECK (Firebase)
-   ========================================================================= */
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { firebaseConfig } from './firebase-config.js';
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-const accountBtn = document.getElementById('account-btn');
-const logoutBtn = document.getElementById('logout-btn');
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // Usuário logado
-    accountBtn.textContent = user.email.split('@')[0];
-    logoutBtn.style.display = 'inline-block';
-  } else {
-    // Sem login → redireciona para a tela de login
-    window.location.href = "login.html";
-  }
-});
-
-logoutBtn.addEventListener('click', () => {
-  signOut(auth).then(() => {
-    window.location.href = "login.html";
-  });
-});
+// =========================
+// 🔚 NÃO COLOQUE Firebase aqui.
+// O guard de autenticação já está no index.html.
+// =========================
