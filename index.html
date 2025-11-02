@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MorillaFlix</title>
   <link rel="stylesheet" href="style.css" />
-  <script defer src="script.js"></script>
-  <!-- 🔐 Importa o guard de autenticação -->
-  <script type="module" defer src="auth.js"></script>
 </head>
+
 <body>
   <!-- ===== HEADER ===== -->
   <header>
@@ -16,7 +14,6 @@
       <span class="gorilla" aria-hidden="true">🦍</span>
       <span class="logo-text">MORILLALFLIX</span>
     </h1>
-
     <nav class="navbar" aria-label="Navegação principal">
       <ul>
         <li><a href="#inicio" data-nav="inicio" class="active">Início</a></li>
@@ -24,22 +21,15 @@
         <li><a href="#favoritos" data-nav="favoritos">Favoritos</a></li>
         <li><a href="#sobre" data-nav="sobre">Sobre</a></li>
         <li><a href="#avaliacoes" data-nav="avaliacoes">Avaliações</a></li>
+        <li><button id="logout-btn" class="btn btn-outline">Sair</button></li>
       </ul>
     </nav>
-
-    <!-- 🔑 Controles de autenticação -->
-    <div class="auth-controls">
-      <button id="account-btn" class="pill">Minha conta</button>
-      <button id="logout-btn" class="pill pill-outline" style="display:none">Sair</button>
-    </div>
   </header>
 
-  <!-- ===== HERO (Imagem do destaque) ===== -->
-  <section class="hero" id="inicio" aria-label="Destaque">
-    <!-- Imagem do destaque controlada pelo JS -->
-  </section>
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="inicio" aria-label="Destaque"></section>
 
-  <!-- ===== HERO INFO (Texto abaixo da imagem) ===== -->
+  <!-- ===== HERO INFO ===== -->
   <section class="hero-info">
     <div class="hero-content">
       <h2 id="hero-title">Carregando…</h2>
@@ -97,8 +87,6 @@
   <!-- ===== AVALIAÇÕES ===== -->
   <section id="avaliacoes" class="avaliacoes-section" aria-label="Avaliações dos usuários">
     <h3>⭐ Avaliações dos Usuários</h3>
-
-    <!-- Formulário de Avaliação -->
     <div class="avaliacao-form">
       <div class="star-rating" id="star-rating">
         <span data-value="1">★</span>
@@ -110,11 +98,7 @@
       <textarea id="comentario" placeholder="Deixe seu comentário..." maxlength="200"></textarea>
       <button id="enviar-avaliacao" class="btn btn-primary">Enviar Avaliação</button>
     </div>
-
-    <!-- Lista de Comentários -->
-    <div class="avaliacoes-lista" id="avaliacoes-lista">
-      <!-- Comentários aparecem aqui -->
-    </div>
+    <div class="avaliacoes-lista" id="avaliacoes-lista"></div>
   </section>
 
   <!-- ===== MODAL TRAILER ===== -->
@@ -126,5 +110,40 @@
   </div>
 
   <footer>© 2025 MorillaFlix</footer>
+
+  <!-- ===== AUTH GUARD ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBi5Uf5AmYUcWWvp3hSLceF6n-uePsQnNE",
+      authDomain: "morillaflix.firebaseapp.com",
+      projectId: "morillaflix",
+      storageBucket: "morillaflix.firebasestorage.app",
+      messagingSenderId: "697146608299",
+      appId: "1:697146608299:web:4c22f0ec4fb744d4cd05ee",
+      measurementId: "G-Z4PF8WJE48"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 🔒 redireciona pra login se não estiver logado
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.replace("login.html");
+      }
+    });
+
+    // 🔓 botão sair
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await signOut(auth);
+      location.replace("login.html");
+    });
+  </script>
+
+  <!-- ===== APP SCRIPT ===== -->
+  <script defer src="script.js"></script>
 </body>
 </html>
